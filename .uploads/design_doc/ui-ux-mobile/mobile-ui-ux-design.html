@@ -1,0 +1,2937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>巡护APP UI/UX设计 - 移动端设计文档 v2.0</title>
+<style>
+/* ====== 全局重置 ====== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #2D7D46;
+  --primary-light: #E8F5E9;
+  --primary-dark: #1B5E20;
+  --deep-green: #0f1f12;
+  --deep-green-2: #1a5f2a;
+  --secondary: #1B5E8C;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --info: #2563eb;
+  --offline-purple: #7c3aed;
+  --bg-gray: #F5F7F5;
+  --bg-white: #FFFFFF;
+  --text-primary: #1A2E24;
+  --text-secondary: #5A7A6A;
+  --text-placeholder: #9DB0A5;
+  --border: #E0E8E2;
+  --sidebar-w: 280px;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  background: #F5F7F5;
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 15px;
+}
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { margin: 10px 0; }
+ul, ol { margin: 10px 0 10px 24px; }
+li { margin: 6px 0; }
+code { background: #E8EDE8; padding: 2px 6px; border-radius: 4px; font-family: "SF Mono", Consolas, monospace; font-size: 13px; color: var(--primary-dark); }
+strong { color: var(--text-primary); }
+
+/* ====== 侧边栏（固定280px 深绿背景） ====== */
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--deep-green);
+  overflow-y: auto;
+  padding: 0;
+  z-index: 100;
+  color: #c8e6c9;
+}
+.sidebar-logo {
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: linear-gradient(135deg, var(--deep-green) 0%, var(--deep-green-2) 100%);
+}
+.sidebar-logo .logo-title {
+  font-size: 18px; font-weight: 700; color: #fff;
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar-logo .logo-title::before {
+  content: ""; display: inline-block; width: 22px; height: 22px;
+  background: var(--primary); border-radius: 6px;
+  background-image: linear-gradient(135deg, #4CAF50 0%, #2D7D46 100%);
+}
+.sidebar-logo small { display: block; font-size: 12px; color: #81c784; font-weight: 400; margin-top: 6px; }
+.toc { padding: 12px 0 32px; }
+.toc a {
+  display: block;
+  padding: 8px 24px;
+  color: #a5d6a7;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+  transition: all .2s;
+}
+.toc a:hover { background: rgba(255,255,255,.06); color: #fff; text-decoration: none; border-left-color: var(--primary); }
+.toc a.level1 { font-weight: 600; color: #fff; font-size: 14px; padding-top: 14px; }
+.toc a.level2 { padding-left: 36px; font-size: 13px; }
+.toc a.level3 { padding-left: 48px; font-size: 12px; color: #81c784; }
+
+/* ====== 主内容区 ====== */
+.main {
+  margin-left: var(--sidebar-w);
+  padding: 40px 56px 80px;
+  max-width: 1100px;
+}
+
+/* ====== 封面 doc-header（深绿渐变） ====== */
+.doc-header {
+  background: linear-gradient(135deg, #0f1f12 0%, #1a5f2a 100%);
+  color: #fff;
+  padding: 56px 48px;
+  border-radius: 16px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(15,31,18,.25);
+}
+.doc-header::before {
+  content: ""; position: absolute; right: -40px; top: -40px;
+  width: 240px; height: 240px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(76,175,80,.25) 0%, transparent 70%);
+}
+.doc-header::after {
+  content: ""; position: absolute; left: -30px; bottom: -60px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(27,94,140,.2) 0%, transparent 70%);
+}
+.doc-header > * { position: relative; z-index: 1; }
+.doc-header h1 { font-size: 36px; margin-bottom: 12px; letter-spacing: 1px; }
+.doc-header .subtitle { font-size: 18px; opacity: .9; margin-bottom: 20px; }
+.doc-header .badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+.doc-header .badge {
+  display: inline-block; padding: 6px 14px; border-radius: 20px;
+  background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
+  font-size: 13px; color: #fff; border: 1px solid rgba(255,255,255,.2);
+}
+.doc-meta { margin-top: 8px; display: flex; gap: 28px; font-size: 13px; opacity: .85; flex-wrap: wrap; }
+.doc-meta span { display: flex; align-items: center; gap: 6px; }
+.doc-meta span::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: #81c784;
+}
+
+/* ====== 章节标题 ====== */
+h1.chapter {
+  font-size: 28px;
+  color: var(--primary-dark);
+  margin: 56px 0 24px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--primary);
+}
+h2.section {
+  font-size: 22px;
+  color: var(--deep-green-2);
+  margin: 40px 0 16px;
+  padding-left: 12px;
+  border-left: 4px solid var(--primary);
+}
+h3.subsection {
+  font-size: 19px;
+  color: var(--primary);
+  margin: 28px 0 12px;
+}
+h4.sub-sub {
+  font-size: 16px;
+  color: var(--text-primary);
+  margin: 20px 0 10px;
+  font-weight: 700;
+}
+
+/* ====== 面板 panel / 功能区块 feature-block ====== */
+.panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin: 20px 0;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(45,125,70,.05);
+}
+.feature-block {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px;
+  margin: 24px 0;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0,0,0,.04);
+}
+.feature-block .subsection { margin-top: 0; }
+
+/* ====== 提示框 notice/warn/danger/offline-tag ====== */
+.notice, .warn, .danger, .offline-tag {
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 14px;
+  border-left: 4px solid;
+}
+.notice {
+  background: #f0fdf4;
+  border-color: var(--primary);
+  color: #14532d;
+}
+.warn {
+  background: #fffbeb;
+  border-color: var(--warning);
+  color: #78350f;
+}
+.danger {
+  background: #fef2f2;
+  border-color: var(--danger);
+  color: #7f1d1d;
+}
+.offline-tag {
+  background: #f5f3ff;
+  border-color: var(--offline-purple);
+  color: #4c1d95;
+}
+
+/* ====== 野外场景框 / 逻辑框 / PC关联框 ====== */
+.field-scene {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 1px solid #86efac;
+  border-left: 4px solid var(--primary);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 14px;
+  color: #064e3b;
+}
+.field-scene::before {
+  content: "🌲 ";
+}
+.logic-box {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid var(--secondary);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.logic-box ul { margin-top: 8px; }
+.logic-box li { margin: 4px 0; }
+.pc-relation {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #93c5fd;
+  border-left: 4px solid var(--info);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 14px;
+  color: #1e3a8a;
+}
+.pc-relation::before {
+  content: "🖥️ ";
+}
+
+/* ====== 表格 ====== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+}
+th {
+  background: #f0fdf4;
+  color: var(--primary-dark);
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  border-bottom: 2px solid var(--primary);
+}
+td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--primary-light); }
+
+/* ====== 色板 color-palette ====== */
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 20px 0;
+}
+.color-swatch {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #fff;
+  transition: transform .2s;
+}
+.color-swatch:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.color-swatch .swatch-block {
+  height: 72px;
+  display: flex;
+  align-items: flex-end;
+  padding: 8px 12px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+}
+.color-swatch .swatch-info { padding: 10px 12px; }
+.color-swatch .swatch-hex { font-family: "SF Mono", Consolas, monospace; font-size: 12px; color: var(--text-secondary); }
+.color-swatch .swatch-name { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+.color-swatch .swatch-usage { font-size: 11px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4; }
+
+/* ====== 步骤流 step-flow ====== */
+.step-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 20px 0;
+  align-items: center;
+}
+.step-flow .step {
+  background: #fff;
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+}
+.step-flow .arrow {
+  color: var(--primary);
+  font-size: 20px;
+  padding: 0 8px;
+}
+.step-flow .step.offline { border-color: var(--offline-purple); color: var(--offline-purple); background: #f5f3ff; }
+.step-flow .step.online { border-color: var(--info); color: var(--info); background: #eff6ff; }
+.step-flow .step.danger-step { border-color: var(--danger); color: var(--danger); background: #fef2f2; }
+
+/* ====== 手机线框 phone-wrap/phone/phone-screen 等 ====== */
+.phone-wrap {
+  display: flex;
+  gap: 24px;
+  margin: 24px 0;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.phone {
+  width: 375px;
+  height: 760px;
+  border: 3px solid #1a1a1a;
+  border-radius: 42px;
+  background: #000;
+  padding: 10px;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 12px 40px rgba(0,0,0,.2);
+}
+.phone::before {
+  content: ""; position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 24px; background: #000; border-radius: 0 0 16px 16px; z-index: 20;
+}
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  border-radius: 32px;
+  background: var(--bg-gray);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.phone-status {
+  height: 40px;
+  padding: 8px 22px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  background: #fff;
+}
+.phone-status .st-icons { display: flex; gap: 6px; align-items: center; font-size: 11px; }
+.phone-status .st-icon { font-size: 11px; }
+.phone-status .offline-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--offline-purple); display: inline-block; }
+.phone-status .online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); display: inline-block; }
+.phone-header {
+  height: 48px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  position: relative;
+}
+.phone-header.transparent { background: transparent; border-bottom: none; color: #fff; position: absolute; top: 40px; left: 0; right: 0; z-index: 10; }
+.phone-header.dark { background: #1a1a1a; color: #fff; border-bottom: none; }
+.phone-header .back { font-size: 26px; font-weight: 400; min-width: 36px; color: inherit; cursor: pointer; }
+.phone-header .title { font-size: 17px; font-weight: 600; flex: 1; text-align: center; margin-right: 36px; }
+.phone-header.transparent .title { color: #fff; }
+.phone-header .right-btn { font-size: 14px; color: var(--primary); min-width: 36px; text-align: right; }
+.phone-header.dark .right-btn { color: #81c784; }
+.phone-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  font-size: 12px;
+}
+.phone-nav {
+  height: 64px;
+  background: #fff;
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: 8px;
+  flex-shrink: 0;
+}
+.phone-nav .nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-placeholder);
+  font-size: 10px;
+  gap: 2px;
+  cursor: pointer;
+  position: relative;
+}
+.phone-nav .nav-item.active { color: var(--primary); }
+.phone-nav .nav-item .nav-icon { font-size: 22px; line-height: 1; }
+.phone-nav .nav-item .nav-label { font-size: 10px; }
+.phone-nav .nav-item .nav-dot {
+  position: absolute; top: 6px; right: 24px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--danger);
+}
+
+/* ====== 手机内部组件 ====== */
+.p-map {
+  height: 200px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 40%, #34d399 100%);
+  position: relative;
+  margin-bottom: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #064e3b;
+  font-weight: 500;
+}
+.p-map::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.2) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+.p-map .map-label { position: relative; z-index: 2; font-size: 13px; }
+.p-map .map-locate {
+  position: absolute; right: 10px; top: 10px;
+  width: 32px; height: 32px; border-radius: 6px;
+  background: rgba(255,255,255,.95); display: flex; align-items: center; justify-content: center;
+  font-size: 16px; box-shadow: 0 2px 6px rgba(0,0,0,.15); z-index: 3;
+}
+.p-map .map-layer {
+  position: absolute; right: 10px; top: 48px;
+  width: 32px; height: 32px; border-radius: 6px;
+  background: rgba(255,255,255,.95); display: flex; align-items: center; justify-content: center;
+  font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,.15); z-index: 3;
+}
+.p-map .map-me {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: 16px; height: 16px; border-radius: 50%; background: var(--info);
+  border: 3px solid #fff; box-shadow: 0 0 0 6px rgba(37,99,235,.25); z-index: 2;
+}
+.p-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  border: 1px solid var(--border);
+}
+.p-card .pc-title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.p-card .pc-sub { font-size: 11px; color: var(--text-secondary); }
+.p-card .pc-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11px; color: var(--text-secondary); }
+.p-card .pc-value { font-size: 18px; font-weight: 700; color: var(--primary); font-family: "SF Mono", Consolas, monospace; }
+.p-list-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.p-list-item:first-child { border-radius: 10px 10px 0 0; }
+.p-list-item:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
+.p-list-item:only-child { border-radius: 10px; }
+.p-list-item .p-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-right: 12px; flex-shrink: 0;
+}
+.p-list-item .p-text { flex: 1; min-width: 0; }
+.p-list-item .p-text .pt-title { font-weight: 500; font-size: 13px; color: var(--text-primary); }
+.p-list-item .p-text .pt-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+.p-list-item .p-badge {
+  padding: 3px 8px; border-radius: 10px; font-size: 10px; color: #fff; margin-left: 8px; flex-shrink: 0;
+}
+.p-badge.green { background: var(--primary); }
+.p-badge.blue { background: var(--info); }
+.p-badge.red { background: var(--danger); }
+.p-badge.orange { background: var(--warning); }
+.p-badge.purple { background: var(--offline-purple); }
+.p-badge.gray { background: #94a3b8; }
+.p-sync-bar {
+  background: linear-gradient(90deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1px solid #c4b5fd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: #5b21b6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.p-sync-bar .sync-spin {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid #c4b5fd; border-top-color: var(--offline-purple);
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 手机内按钮 */
+.p-btn {
+  width: 100%;
+  height: 46px;
+  border-radius: 10px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.p-btn.primary { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(45,125,70,.3); }
+.p-btn.danger { background: var(--danger); color: #fff; box-shadow: 0 4px 12px rgba(220,38,38,.3); }
+.p-btn.outline { background: #fff; color: var(--primary); border: 1.5px solid var(--primary); }
+.p-btn.disabled { background: #cbd5e1; color: #fff; }
+.p-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.p-seg {
+  display: flex;
+  background: #fff;
+  border-radius: 8px;
+  padding: 3px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+}
+.p-seg .seg-item {
+  flex: 1; text-align: center; padding: 7px 0; font-size: 12px;
+  border-radius: 6px; color: var(--text-secondary);
+}
+.p-seg .seg-item.active { background: var(--primary); color: #fff; font-weight: 600; }
+.p-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 8px;
+  margin-bottom: 10px;
+  gap: 4px;
+}
+.p-stats .stat { text-align: center; }
+.p-stats .stat-val { display: block; font-size: 20px; font-weight: 700; color: var(--primary); font-family: "SF Mono", Consolas, monospace; }
+.p-stats .stat-lbl { display: block; font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+.p-grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.p-grid3 .grid-item {
+  background: #fff;
+  border-radius: 8px;
+  padding: 14px 6px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.p-grid3 .grid-item .gi-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+.p-grid3 .grid-item .gi-lbl { font-size: 11px; }
+.p-input {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  margin-bottom: 8px;
+  color: var(--text-placeholder);
+}
+.p-search {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-placeholder);
+  border: 1px solid var(--border);
+}
+.p-fab {
+  position: absolute;
+  right: 14px;
+  bottom: 78px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 6px 16px rgba(45,125,70,.4);
+  z-index: 5;
+}
+.p-fab.danger-fab { background: var(--danger); box-shadow: 0 6px 16px rgba(220,38,38,.4); }
+.p-profile {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 10px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.p-profile .avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.p-profile .p-name { font-size: 17px; font-weight: 600; }
+.p-profile .p-sub { font-size: 12px; opacity: .85; margin-top: 4px; }
+.p-banner-offline {
+  background: var(--offline-purple);
+  color: #fff;
+  font-size: 11px;
+  padding: 6px 12px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.p-watermark {
+  background: #1a1a1a;
+  border-radius: 8px;
+  height: 180px;
+  position: relative;
+  margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px;
+}
+.p-watermark .wm-corner {
+  position: absolute;
+  left: 8px; bottom: 8px;
+  font-size: 9px; line-height: 1.5;
+  background: rgba(0,0,0,.5); padding: 4px 6px; border-radius: 3px;
+}
+.p-camera-viewfinder {
+  width: 75%; height: 55%; border: 1.5px solid rgba(255,255,255,.4);
+  position: relative;
+}
+.p-vf-c { position: absolute; width: 16px; height: 16px; border-color: var(--primary); border-style: solid; border-width: 0; }
+.p-vf-c.tl { top: -2px; left: -2px; border-top-width: 3px; border-left-width: 3px; }
+.p-vf-c.tr { top: -2px; right: -2px; border-top-width: 3px; border-right-width: 3px; }
+.p-vf-c.bl { bottom: -2px; left: -2px; border-bottom-width: 3px; border-left-width: 3px; }
+.p-vf-c.br { bottom: -2px; right: -2px; border-bottom-width: 3px; border-right-width: 3px; }
+.p-rec {
+  background: var(--danger);
+  color: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.p-rec .rec-t { font-size: 26px; font-weight: 700; font-family: "SF Mono", Consolas, monospace; }
+.p-rec .rec-s { display: flex; justify-content: space-around; margin-top: 8px; font-size: 11px; }
+.p-rec .rec-s b { font-size: 15px; display: block; }
+.p-toast {
+  position: absolute; left: 50%; top: 40%; transform: translate(-50%,-50%);
+  background: rgba(0,0,0,.8); color: #fff; padding: 10px 18px; border-radius: 8px;
+  font-size: 13px; z-index: 50;
+}
+.p-empty {
+  text-align: center; padding: 40px 20px; color: var(--text-secondary); font-size: 13px;
+}
+.p-empty .empty-icon { font-size: 48px; opacity: .4; margin-bottom: 10px; }
+.p-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; margin-right: 4px; margin-bottom: 4px;
+}
+.p-tag.offline-t { background: #ede9fe; color: var(--offline-purple); }
+.p-tag.online-t { background: #dbeafe; color: var(--info); }
+.p-tag.danger-t { background: #fee2e2; color: var(--danger); }
+.p-tag.success-t { background: #dcfce7; color: var(--primary-dark); }
+
+/* 线框关键区域说明 */
+.phone-annotations {
+  flex: 1;
+  min-width: 240px;
+  font-size: 13px;
+}
+.phone-annotations .anno-title {
+  font-weight: 600; font-size: 14px; color: var(--primary-dark);
+  margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid var(--primary-light);
+}
+.phone-annotations ol { margin: 0; padding-left: 20px; }
+.phone-annotations li { margin: 8px 0; color: var(--text-primary); line-height: 1.6; }
+.phone-annotations li b { color: var(--primary); }
+
+/* Mermaid 容器 */
+.mermaid-wrap {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 16px 0;
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  text-align: center;
+}
+
+/* 环境特征卡片网格 */
+.env-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.env-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--primary);
+}
+.env-card.net { border-top-color: var(--offline-purple); }
+.env-card.light { border-top-color: #f59e0b; }
+.env-card.op { border-top-color: var(--info); }
+.env-card.battery { border-top-color: var(--danger); }
+.env-card .env-title { font-weight: 600; font-size: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.env-card .env-title .env-icon { font-size: 20px; }
+.env-card .env-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+.env-card .env-decision {
+  background: var(--primary-light); padding: 8px 10px; border-radius: 6px;
+  font-size: 12px; color: var(--primary-dark); font-weight: 500;
+}
+
+/* 场景故事 */
+.scene-story {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 12px 0;
+  border-left: 4px solid var(--primary);
+  font-size: 14px;
+}
+.scene-story.warn-story { border-left-color: var(--warning); }
+.scene-story.danger-story { border-left-color: var(--danger); }
+.scene-story.info-story { border-left-color: var(--info); }
+.scene-story.purple-story { border-left-color: var(--offline-purple); }
+.scene-story .ss-title { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+.scene-story .ss-meta { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.scene-story .ss-body { line-height: 1.7; color: var(--text-primary); }
+
+/* 数字等宽字体 */
+.mono { font-family: "SF Mono", Consolas, Monaco, monospace; }
+
+/* 响应式 */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 20px 16px 60px; }
+  .doc-header { padding: 32px 24px; }
+  .doc-header h1 { font-size: 26px; }
+  .phone-wrap { flex-direction: column; align-items: center; }
+  .phone { transform: scale(.85); transform-origin: top center; margin-bottom: -90px; }
+}
+</style>
+</head>
+<body>
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-title">巡护APP UI/UX</div>
+    <small>移动端设计文档 v2.0</small>
+  </div>
+  <div class="toc">
+    <a href="#doc-header" class="level1">封面</a>
+
+    <a href="#ch0" class="level1">第0章 业务场景与角色</a>
+    <a href="#s0-1" class="level2">0.1 角色定义</a>
+    <a href="#s0-2" class="level2">0.2 野外工作环境</a>
+    <a href="#s0-3" class="level2">0.3 典型野外场景</a>
+
+    <a href="#ch1" class="level1">第1章 设计系统规范</a>
+    <a href="#s1-1" class="level2">1.1 设计原则</a>
+    <a href="#s1-2" class="level2">1.2 色彩系统</a>
+    <a href="#s1-3" class="level2">1.3 字体规范</a>
+    <a href="#s1-4" class="level2">1.4 尺寸与间距</a>
+    <a href="#s1-5" class="level2">1.5 组件规范</a>
+
+    <a href="#ch2" class="level1">第2章 整体框架设计</a>
+    <a href="#s2-1" class="level2">2.1 APP整体架构</a>
+    <a href="#s2-2" class="level2">2.2 底部Tab导航</a>
+    <a href="#s2-3" class="level2">2.3 导航栏设计</a>
+    <a href="#s2-4" class="level2">2.4 页面转场动画</a>
+    <a href="#s2-5" class="level2">2.5 离线模式全局设计</a>
+    <a href="#s2-6" class="level2">2.6 全局交互</a>
+
+    <a href="#ch3" class="level1">第3章 导航体系与功能菜单</a>
+    <a href="#s3-1" class="level2">3.1 页面跳转关系图</a>
+    <a href="#s3-2" class="level2">3.2 完整菜单树</a>
+    <a href="#s3-3" class="level2">3.3 页面跳转规则</a>
+
+    <a href="#ch4" class="level1">第4章 逐页面详细UI设计</a>
+    <a href="#page-splash" class="level2">启动/登录/引导页</a>
+    <a href="#page-map-home" class="level2">地图首页</a>
+    <a href="#page-map-offline" class="level2">离线地图包管理</a>
+    <a href="#page-map-layer" class="level2">图层选择页</a>
+    <a href="#page-patrol-home" class="level2">巡护首页</a>
+    <a href="#page-patrol-track" class="level2">轨迹记录页</a>
+    <a href="#page-patrol-event" class="level2">异常事件上报</a>
+    <a href="#page-patrol-media" class="level2">多媒体取证</a>
+    <a href="#page-patrol-cache" class="level2">记录缓存列表</a>
+    <a href="#page-task-list" class="level2">任务列表页</a>
+    <a href="#page-task-detail" class="level2">任务详情页</a>
+    <a href="#page-task-checkin" class="level2">任务执行打卡</a>
+    <a href="#page-ai-home" class="level2">物种识别首页</a>
+    <a href="#page-ai-result" class="level2">识别结果页</a>
+    <a href="#page-ai-history" class="level2">识别记录页</a>
+    <a href="#page-me-home" class="level2">个人中心首页</a>
+    <a href="#page-me-extra" class="level2">设置/离线包/反馈</a>
+
+    <a href="#ch5" class="level1">第5章 关键用户流程</a>
+    <a href="#s5-1" class="level2">5.1 日常巡护闭环</a>
+    <a href="#s5-2" class="level2">5.2 异常事件上报闭环</a>
+    <a href="#s5-3" class="level2">5.3 离线工作闭环</a>
+    <a href="#s5-4" class="level2">5.4 物种识别闭环</a>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ========== 封面 ========== -->
+<div class="doc-header" id="doc-header">
+  <h1>巡护APP UI/UX设计</h1>
+  <p class="subtitle">移动端设计文档 v2.0</p>
+  <div class="badges">
+    <span class="badge">野外可用</span>
+    <span class="badge">离线优先</span>
+    <span class="badge">单手操作</span>
+  </div>
+  <div class="doc-meta">
+    <span>适用端：iOS / Android</span>
+    <span>基准尺寸：375×812pt (iPhone X)</span>
+    <span>场景：野外作业</span>
+    <span>更新：2026-06-30</span>
+  </div>
+</div>
+
+<!-- ========== 第0章 ========== -->
+<h1 class="chapter" id="ch0">第0章 移动端业务场景与角色分析</h1>
+
+<div class="panel">
+<p>本章从业务场景出发，明确巡护APP的使用者、工作环境与典型故事，为后续设计决策提供依据。所有UI/UX选择（按钮大小、配色、离线策略、低功耗方案）均须回溯到本章场景验证。</p>
+</div>
+
+<h2 class="section" id="s0-1">0.1 角色定义</h2>
+<p>巡护APP面向三类核心用户，其工作场景、频率和任务差异显著，设计时须兼顾共性与差异化需求。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width:14%">角色</th>
+      <th style="width:22%">工作场景</th>
+      <th style="width:10%">使用频率</th>
+      <th style="width:32%">核心任务</th>
+      <th>设备要求</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>日常巡护员</strong><br><span style="font-size:12px;color:var(--text-secondary)">老张/一线巡护</span></td>
+      <td>固定路线日常巡护，覆盖核心区/缓冲区/实验区，多为山地河谷徒步</td>
+      <td>每日 4-8h</td>
+      <td>轨迹记录、常规观察记录、异常事件上报（非法捕鱼/采砂/排污等）、任务打卡</td>
+      <td>三防手机、长续航、大按钮、手套可操作、强光可见</td>
+    </tr>
+    <tr>
+      <td><strong>专项科考队员</strong><br><span style="font-size:12px;color:var(--text-secondary)">小李/科研人员</span></td>
+      <td>季节性/专项科考，进入核心区长期驻扎，涉及物种调查、水样采集、生境记录</td>
+      <td>任务期集中使用</td>
+      <td>物种识别拍照取证、多媒体采集（照片/视频/录音）、GPS航点标记、样方调查表单</td>
+      <td>拍照质量高、存储大、支持外接设备（热成像/水质仪）、离线地图精细</td>
+    </tr>
+    <tr>
+      <td><strong>应急响应队员</strong><br><span style="font-size:12px;color:var(--text-secondary)">应急值班/执法</span></td>
+      <td>接报后紧急出动，夜间/恶劣天气下执法处置，涉险场景多</td>
+      <td>响应事件时高频使用</td>
+      <td>紧急上报、实时定位回传、现场取证（水印相机/视频）、接收指挥调度、夜间热成像</td>
+      <td>一键紧急上报、强提醒、夜间模式、位置实时上报、防误触</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 class="section" id="s0-2">0.2 野外工作环境特征</h2>
+<p>保护区自然环境在网络、光线、操作、设备四个维度均对APP设计提出严苛要求。</p>
+
+<div class="env-grid">
+  <div class="env-card net">
+    <div class="env-title"><span class="env-icon">📡</span>网络条件</div>
+    <div class="env-desc">
+      <strong>核心区：</strong>无信号（占巡护时间约40%）<br>
+      <strong>缓冲区：</strong>2G/3G弱网（约35%）<br>
+      <strong>实验区/管理站：</strong>4G/WiFi（约25%）
+    </div>
+    <div class="env-decision">设计决策：离线优先（Offline-First）架构，所有核心功能本地SQLite缓存，网络恢复自动增量同步</div>
+  </div>
+  <div class="env-card light">
+    <div class="env-title"><span class="env-icon">☀️</span>光线条件</div>
+    <div class="env-desc">
+      <strong>晴天强光：</strong>屏幕反光严重，浅色背景看不清<br>
+      <strong>阴天/林间：</strong>低光环境<br>
+      <strong>夜间/洞穴：</strong>需深色模式+高对比度
+    </div>
+    <div class="env-decision">设计决策：提供"强光模式"（高对比度深色主题、粗边框、加大字号）；避免浅灰文字；重要状态用色块而非细线</div>
+  </div>
+  <div class="env-card op">
+    <div class="env-title"><span class="env-icon">🧤</span>操作条件</div>
+    <div class="env-desc">
+      <strong>单手操作：</strong>另一手持工具/攀爬/记录<br>
+      <strong>戴手套：</strong>湿手/厚手套触控精度低<br>
+      <strong>雨中：</strong>屏幕水迹干扰、设备防水袋
+    </div>
+    <div class="env-decision">设计决策：触摸目标最小44×44pt、按钮间距≥8pt；主操作按钮全部集中在底部1/3拇指热区；关键操作提供实体按钮级反馈</div>
+  </div>
+  <div class="env-card battery">
+    <div class="env-title"><span class="env-icon">🔋</span>设备条件</div>
+    <div class="env-desc">
+      <strong>电量有限：</strong>单日巡护8h+无充电条件<br>
+      <strong>存储有限：</strong>离线地图+照片占用大<br>
+      <strong>防水防摔：</strong>三防机性能中低端
+    </div>
+    <div class="env-decision">设计决策：低功耗模式（降低GPS采样/屏幕亮度）；存储预警+一键清理；矢量瓦片地图；后台任务批量执行</div>
+  </div>
+</div>
+
+<h2 class="section" id="s0-3">0.3 典型野外场景故事</h2>
+<p>以下5个场景故事覆盖日常巡护、科考、应急、夜间、同步全链路，作为后续页面设计的验证用例。</p>
+
+<div class="scene-story">
+  <div class="ss-title">场景1：清晨无网轨迹记录</div>
+  <div class="ss-meta">角色：老张（日常巡护员） · 环境：核心区清晨 · 网络：无信号</div>
+  <div class="ss-body">清晨6:30，老张从管理站出发进入核心区，手机信号已断。他打开巡护APP点击"开始巡护"，APP自动检测网络状态并在顶部显示紫色"离线模式"横幅。轨迹在本地SQLite按10秒间隔记录，GPS点坐标、海拔、速度实时写入本地。行进中他发现一处河岸塌方，在无网情况下拍照（自动叠加GPS水印和时间戳）、选择类型"地质灾害"并输入描述，数据全部进入本地待同步队列。整个上午他的巡护里程5.8km，记录3个观察点，APP耗电仅8%。</div>
+</div>
+
+<div class="scene-story info-story">
+  <div class="ss-title">场景2：发现大鲵产卵场拍照取证</div>
+  <div class="ss-meta">角色：小李（科考队员） · 环境：缓冲区溪流 · 网络：2G弱网</div>
+  <div class="ss-body">小李在溪流浅滩发现大鲵产卵场，这是重要科考发现。他打开APP"多媒体取证"，切换到水印相机模式，拍摄12张照片+1段30秒视频+5分钟环境录音。每张照片自动叠加经纬度（精度±3m）、海拔、时间、巡护员姓名、方位角水印。他选择关联物种"大鲵"、标记为"国家二级保护动物"并添加生境描述。2G网络下照片无法实时上传，全部本地缓存，视频自动压缩为720p以节省空间。返回缓冲区边缘时，APP自动开始后台分片上传，不影响他继续记录。</div>
+</div>
+
+<div class="scene-story danger-story">
+  <div class="ss-title">场景3：暴雨中非法捕鱼紧急上报</div>
+  <div class="ss-meta">角色：老张（日常巡护员） · 环境：缓冲区河边暴雨 · 网络：2G极弱</div>
+  <div class="ss-body">暴雨中老张发现3人在非法电鱼，情况紧急。他掏出手机（套在防水袋中），长按APP图标快捷方式"紧急上报"，APP直接启动紧急上报流程：自动打开摄像头录制视频（带水印）、同时在后台持续上报GPS位置（使用SMS兜底通道如果数据网络失败）。他戴着手套点击大尺寸"紧急上报"红色按钮，事件立即标记为"紧急"级别，本地最高优先级缓存。APP尝试通过2G网络发送关键信息（类型+GPS+1张缩略图），完整视频等网络恢复后上传。PC端指挥中心第一时间收到告警弹窗并派单给最近的执法队。</div>
+</div>
+
+<div class="scene-story purple-story">
+  <div class="ss-title">场景4：夜间可疑船只热成像记录</div>
+  <div class="ss-meta">角色：应急队员老王 · 环境：夜间实验区水面 · 网络：4G</div>
+  <div class="ss-body">夜间23:00，老王接指挥中心调度，在诺水河下游发现可疑船只可能非法采砂。他携带外接热成像设备到达现场，APP自动切换到"夜间模式"（深色主题+红色调保护夜视能力）。他通过APP连接热成像设备，录制热成像视频，同时用可见光相机拍摄取证。APP实时将位置和视频流回传指挥中心（RTMP低延迟），在地图上标记船只位置和移动方向。执法队到达前，他通过APP接收指挥中心消息（语音播报），全程戴手套单手操作。</div>
+</div>
+
+<div class="scene-story warn-story">
+  <div class="ss-title">场景5：返回管理站WiFi同步数据</div>
+  <div class="ss-meta">角色：老张/小李 · 环境：管理站 · 网络：WiFi</div>
+  <div class="ss-body">下午17:00老张结束巡护返回管理站，手机自动连接WiFi。APP立即检测到网络恢复，顶部紫色横幅变为蓝色"正在同步..."并显示进度条（12条待同步记录、38张照片）。同步采用断点续传+分片上传，中途他去吃饭回来已完成。同步完成后APP弹出"今日巡护数据已同步至PC端"提示，PC端"巡护记录审核"模块自动出现老张的轨迹和事件记录，值班员开始审核。小李的大鲵记录被标记为"重要发现"自动进入科考数据库。</div>
+</div>
+
+
+<!-- ========== 第1章 ========== -->
+<h1 class="chapter" id="ch1">第1章 移动端设计系统规范</h1>
+
+<h2 class="section" id="s1-1">1.1 设计原则</h2>
+<p>巡护APP面向野外复杂环境，所有设计决策以"野外可用性"为最高准则，以下五大原则贯穿全部页面与组件：</p>
+
+<div class="notice">
+  <strong>原则一 · 野外可用性优先</strong><br>
+  所有可交互元素须考虑户外强光可视（高对比度、避免细线条/浅灰文字）、戴手套操作（触控目标≥44×44pt、按钮间距≥8pt）、雨雪天气（避免依赖复杂手势，关键操作提供按钮）。主按钮使用高饱和度生态绿#2D7D46，全宽展示。
+</div>
+<div class="notice">
+  <strong>原则二 · 离线优先（Offline-First）</strong><br>
+  核心区无网是常态而非异常。所有核心功能（轨迹记录、拍照取证、异常上报、任务打卡）支持离线：数据先写入本地SQLite，网络恢复后自动增量同步。页面加载优先读取本地缓存，并提供明确的同步状态指示（紫色离线横幅/蓝色同步进度条）。
+</div>
+<div class="notice">
+  <strong>原则三 · 单手操作优化</strong><br>
+  巡护员常一手持设备、一手持工具/攀爬。关键操作按钮（开始巡护、拍照、紧急上报）必须位于屏幕下半区（拇指热区）。顶部导航栏仅放置返回按钮和低频操作。FAB浮动按钮固定在右下角。
+</div>
+<div class="notice">
+  <strong>原则四 · 低功耗优化</strong><br>
+  野外充电困难。定位策略：巡护中10秒记录一次（静止降频），非巡护仅主动请求时定位。提供"省电模式"自动降亮度+缩短锁屏。地图使用矢量瓦片。后台任务批量执行。电量低于20%时提示关闭高频GPS。
+</div>
+<div class="notice">
+  <strong>原则五 · 一致性</strong><br>
+  全APP使用统一组件库、色彩、字体、交互模式。相同功能在不同页面使用相同图标和位置（返回按钮始终左上、主操作始终底部），降低学习成本和误操作。
+</div>
+
+<h2 class="section" id="s1-2">1.2 色彩系统</h2>
+<p>以生态绿为主色，构建野外高对比度配色体系。所有文本与背景对比度≥4.5:1（WCAG AA），强光模式下≥7:1。</p>
+
+<h3 class="subsection">主色与辅色</h3>
+<div class="color-palette">
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#2D7D46">生态绿 主色</div>
+    <div class="swatch-info"><div class="swatch-name">主色 Primary</div><div class="swatch-hex">#2D7D46</div><div class="swatch-usage">主按钮、Tab选中态、关键操作、品牌色</div></div>
+  </div>
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#1a5f2a">深绿</div>
+    <div class="swatch-info"><div class="swatch-name">深绿 Dark Green</div><div class="swatch-hex">#1a5f2a</div><div class="swatch-usage">导航栏深色、标题、封面渐变</div></div>
+  </div>
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#1B5E20">暗绿</div>
+    <div class="swatch-info"><div class="swatch-name">暗绿 Darker</div><div class="swatch-hex">#1B5E20</div><div class="swatch-usage">章节标题、强调文字、h1.chapter</div></div>
+  </div>
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#E8F5E9">浅绿底</div>
+    <div class="swatch-info"><div class="swatch-name">浅绿 Light BG</div><div class="swatch-hex">#E8F5E9</div><div class="swatch-usage">表格头th背景、notice提示框、选中底</div></div>
+  </div>
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#1B5E8C">科技蓝</div>
+    <div class="swatch-info"><div class="swatch-name">科技蓝 Secondary</div><div class="swatch-hex">#1B5E8C</div><div class="swatch-usage">定位点、科技感元素、PC关联、逻辑框</div></div>
+  </div>
+</div>
+
+<h3 class="subsection">功能色</h3>
+<div class="color-palette">
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#dc2626">危险红</div>
+    <div class="swatch-info"><div class="swatch-name">危险 Danger</div><div class="swatch-hex">#dc2626</div><div class="swatch-usage">紧急上报、错误状态、删除操作、录音</div></div>
+  </div>
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#d97706">警告橙</div>
+    <div class="swatch-info"><div class="swatch-name">警告 Warning</div><div class="swatch-hex">#d97706</div><div class="swatch-usage">电量低、存储警告、待审核、异常提示</div></div>
+  </div>
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#2563eb">信息蓝</div>
+    <div class="swatch-info"><div class="swatch-name">信息 Info</div><div class="swatch-hex">#2563eb</div><div class="swatch-usage">同步中、提示信息、链接、pc-relation</div></div>
+  </div>
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#7c3aed">离线紫</div>
+    <div class="swatch-info"><div class="swatch-name">离线 Offline</div><div class="swatch-hex">#7c3aed</div><div class="swatch-usage">离线横幅、离线标签、缓存队列、待同步</div></div>
+  </div>
+  <div class="color-swatch">
+    <div class="swatch-block" style="background:#0f1f12">深绿黑</div>
+    <div class="swatch-info"><div class="swatch-name">侧边深绿</div><div class="swatch-hex">#0f1f12</div><div class="swatch-usage">侧边栏背景、摄像头深色导航栏</div></div>
+  </div>
+</div>
+
+<h3 class="subsection">五色评价色（用于保护等级/事件等级）</h3>
+<div class="color-palette">
+  <div class="color-swatch"><div class="swatch-block" style="background:#dc2626">红</div><div class="swatch-info"><div class="swatch-name">紧急/国家一级</div><div class="swatch-hex">#dc2626</div><div class="swatch-usage">紧急事件、国家一级保护动物</div></div></div>
+  <div class="color-swatch"><div class="swatch-block" style="background:#ea580c">橙</div><div class="swatch-info"><div class="swatch-name">严重/国家二级</div><div class="swatch-hex">#ea580c</div><div class="swatch-usage">严重事件、国家二级保护动物</div></div></div>
+  <div class="color-swatch"><div class="swatch-block" style="background:#d97706">黄</div><div class="swatch-info"><div class="swatch-name">警告/省级重点</div><div class="swatch-hex">#d97706</div><div class="swatch-usage">一般异常、省级保护</div></div></div>
+  <div class="color-swatch"><div class="swatch-block" style="background:#2563eb">蓝</div><div class="swatch-info"><div class="swatch-name">提示/普通观察</div><div class="swatch-hex">#2563eb</div><div class="swatch-usage">常规观察、信息提示</div></div></div>
+  <div class="color-swatch"><div class="swatch-block" style="background:#2D7D46">绿</div><div class="swatch-info"><div class="swatch-name">正常/完成</div><div class="swatch-hex">#2D7D46</div><div class="swatch-usage">状态正常、任务完成、已审核</div></div></div>
+</div>
+
+<h3 class="subsection">地图图层色</h3>
+<div class="color-palette">
+  <div class="color-swatch"><div class="swatch-block" style="background:#34d399">轨迹线</div><div class="swatch-info"><div class="swatch-name">轨迹线</div><div class="swatch-hex">#10b981</div><div class="swatch-usage">已走过轨迹路径，4pt宽度</div></div></div>
+  <div class="color-swatch"><div class="swatch-block" style="background:#3b82f6">当前位置</div><div class="swatch-info"><div class="swatch-name">定位点</div><div class="swatch-hex">#2563eb</div><div class="swatch-usage">当前GPS位置，外带蓝色脉冲圈</div></div></div>
+  <div class="color-swatch"><div class="swatch-block" style="background:#ef4444">事件点</div><div class="swatch-info"><div class="swatch-name">事件标记</div><div class="swatch-hex">#dc2626</div><div class="swatch-usage">异常事件点标记，带红色脉冲</div></div></div>
+  <div class="color-swatch"><div class="swatch-block" style="background:#f59e0b">任务点</div><div class="swatch-info"><div class="swatch-name">任务/打卡点</div><div class="swatch-hex">#d97706</div><div class="swatch-usage">任务点、打卡签到点</div></div></div>
+  <div class="color-swatch"><div class="swatch-block" style="background:#a7f3d0">保护区绿</div><div class="swatch-info"><div class="swatch-name">保护区底色</div><div class="swatch-hex">#6ee7b7</div><div class="swatch-usage">地图保护区范围底色（青绿渐变）</div></div></div>
+</div>
+
+<h2 class="section" id="s1-3">1.3 字体规范</h2>
+
+<table>
+  <thead><tr><th>层级</th><th>字号</th><th>字重</th><th>用途</th><th>字体</th></tr></thead>
+  <tbody>
+    <tr><td>H1 章节</td><td>28px</td><td>700</td><td>章标题（文档内）</td><td>系统字体栈</td></tr>
+    <tr><td>H2 节</td><td>22px</td><td>600</td><td>节标题</td><td>系统字体栈</td></tr>
+    <tr><td>H3 小节</td><td>19px</td><td>600</td><td>小节标题</td><td>系统字体栈</td></tr>
+    <tr><td>导航栏标题</td><td>17px</td><td>600</td><td>APP内顶部导航</td><td>系统字体栈</td></tr>
+    <tr><td>正文/列表</td><td>15px/14px</td><td>400/500</td><td>正文、列表项标题</td><td>系统字体栈</td></tr>
+    <tr><td>辅助文字</td><td>12-13px</td><td>400</td><td>描述、时间、副标题</td><td>系统字体栈</td></tr>
+    <tr><td>标签/徽章</td><td>10-11px</td><td>500</td><td>Badge、Tab文字、水印</td><td>系统字体栈</td></tr>
+    <tr><td><strong>数字/坐标</strong></td><td>—</td><td>—</td><td>经纬度、里程、计时、坐标</td><td><code class="mono">SF Mono / Consolas</code> 等宽</td></tr>
+  </tbody>
+</table>
+
+<div class="notice">
+  <strong>系统字体栈：</strong><code>-apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif</code><br>
+  <strong>数字等宽字体：</strong>所有GPS坐标、里程、计时、海拔、速度等数据必须使用等宽字体（<code>font-family: "SF Mono", Consolas, Monaco, monospace</code>），避免数字跳动引起的视觉不稳定。
+</div>
+
+<h2 class="section" id="s1-4">1.4 尺寸与间距</h2>
+
+<ul>
+  <li><strong>栅格系统：</strong>8pt栅格，所有间距、尺寸为8的倍数（8/12/16/24/32/44/48）。</li>
+  <li><strong>基准尺寸：</strong>375×812pt（iPhone X），适配iPhone 8~iPhone 15 Pro Max及主流Android 1080×2340（密度3）。</li>
+  <li><strong>安全区适配：</strong>顶部状态栏40~44pt、底部Home Indicator 20~34pt、底部Tab栏高64pt（含底部安全区）。所有内容避开刘海和底部指示条。</li>
+  <li><strong>单手热区：</strong>屏幕底部1/3区域（约距底部250pt内）为拇指易达区，主要操作按钮（开始巡护、拍照、FAB）必须置于此区域。屏幕顶部1/4为困难区，仅放返回/关闭等低频操作。</li>
+  <li><strong>触摸目标：</strong>所有可点击元素最小44×44pt（HIG规范），按钮间距≥8pt避免误触。戴手套场景主要按钮加大至48~52pt高。</li>
+  <li><strong>内容边距：</strong>页面左右边距16pt，卡片内边距14pt，列表项高度≥48pt。</li>
+</ul>
+
+<h2 class="section" id="s1-5">1.5 组件规范</h2>
+<p>以下为APP内使用的核心组件规范，每个组件配手机线框Demo展示。</p>
+
+<h3 class="subsection">1.5.1 底部Tab栏</h3>
+<p>5个固定Tab（地图/巡护/任务/识别/我的），高度64pt（含安全区），图标22pt+文字10pt，选中态生态绿、未选中态灰色#9DB0A5。支持Badge红点提示。</p>
+
+<div class="phone-wrap">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="online-dot"></span><span class="st-icon">🔋</span></span></div>
+      <div class="phone-header"><span class="back"></span><span class="title">巡护</span></div>
+      <div class="phone-body">
+        <div class="p-stats">
+          <div class="stat"><span class="stat-val">5.8</span><span class="stat-lbl">今日里程(km)</span></div>
+          <div class="stat"><span class="stat-val">3</span><span class="stat-lbl">观察记录</span></div>
+          <div class="stat"><span class="stat-val">0</span><span class="stat-lbl">异常事件</span></div>
+        </div>
+        <div class="p-card"><div class="pc-title">当前无进行中巡护</div><div class="pc-sub">点击下方按钮开始今日巡护</div></div>
+      </div>
+      <div class="phone-nav">
+        <div class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+        <div class="nav-item active"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span><span class="nav-dot"></span></div>
+        <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+        <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+        <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-annotations">
+    <div class="anno-title">Tab栏关键说明</div>
+    <ol>
+      <li><b>固定5个Tab：</b>地图/巡护/任务/识别/我的，不可滑动、不可自定义顺序。</li>
+      <li><b>选中态：</b>图标+文字变为生态绿#2D7D46，非选中为#9DB0A5灰色。</li>
+      <li><b>Badge红点：</b>紧急事件/新任务时在对应Tab右上角显示红点（图中巡护Tab示例）。</li>
+      <li><b>高度64pt：</b>含底部安全区（iPhone上底部padding 10pt，Home Indicator上方）。</li>
+      <li><b>中间不凸起：</b>避免与FAB冲突，5个Tab等高排列。</li>
+    </ol>
+  </div>
+</div>
+
+<h3 class="subsection">1.5.2 导航栏（三种类型）</h3>
+<p>标准导航栏白底深字48pt高；透明导航栏用于地图页浮于地图上方；深色导航栏用于摄像头/夜间模式。</p>
+
+<h3 class="subsection">1.5.3 列表项</h3>
+<p>列表项高度48pt+，左侧图标36pt圆角方块，主标题13pt粗、副标题11pt灰，右侧可带Badge/箭头。</p>
+
+<div class="phone-wrap">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="online-dot"></span><span class="st-icon">🔋</span></span></div>
+      <div class="phone-header"><span class="back">‹</span><span class="title">记录缓存</span><span class="right-btn">清空</span></div>
+      <div class="phone-body">
+        <div class="p-sync-bar"><span class="sync-spin"></span>正在同步 3/12 · 已传42%</div>
+        <div class="p-list-item">
+          <div class="p-icon">📷</div>
+          <div class="p-text"><div class="pt-title">大鲵产卵场发现</div><div class="pt-sub">12张照片·09:32·N32°28′</div></div>
+          <span class="p-badge purple">待同步</span>
+        </div>
+        <div class="p-list-item">
+          <div class="p-icon">⚠️</div>
+          <div class="p-text"><div class="pt-title">河岸塌方</div><div class="pt-sub">地质灾害·10:15·已上传</div></div>
+          <span class="p-badge green">已同步</span>
+        </div>
+        <div class="p-list-item">
+          <div class="p-icon">🎥</div>
+          <div class="p-text"><div class="pt-title">非法捕鱼取证</div><div class="pt-sub">紧急·视频2:30·11:08</div></div>
+          <span class="p-badge red">紧急</span>
+        </div>
+        <div class="p-list-item">
+          <div class="p-icon">📍</div>
+          <div class="p-text"><div class="pt-title">航点标记 W023</div><div class="pt-sub">科考样方·14:22</div></div>
+          <span class="p-badge blue">同步中</span>
+        </div>
+      </div>
+      <div class="phone-nav">
+        <div class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+        <div class="nav-item active"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span></div>
+        <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+        <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+        <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-annotations">
+    <div class="anno-title">列表项关键说明</div>
+    <ol>
+      <li><b>.p-icon：</b>36×36pt圆角8pt，浅绿底深绿图标。</li>
+      <li><b>.p-text：</b>主标题13pt/500，副标题11pt/#5A7A6A。</li>
+      <li><b>.p-badge：</b>绿/蓝/红/紫/橙五色状态徽章，圆角10pt，10pt字。</li>
+      <li><b>.p-sync-bar：</b>紫色同步条显示进度，带旋转加载图标。</li>
+      <li><b>分隔线：</b>列表项间1pt #E0E8E2分隔线，最后一项无。</li>
+    </ol>
+  </div>
+</div>
+
+<h3 class="subsection">1.5.4 卡片</h3>
+<p>白底圆角10pt卡片，内边距14pt，阴影0 1px 4px rgba(0,0,0,.05)，用于数据展示、统计、分组信息。</p>
+
+<h3 class="subsection">1.5.5 按钮</h3>
+<p>主按钮全宽46pt高、生态绿底白字、圆角10pt；危险按钮红底；次按钮白底绿边。按钮文字15pt/600。</p>
+
+<h3 class="subsection">1.5.6 表单输入</h3>
+<p>输入框白底1pt #E0E8E2边框、圆角8pt、内边距10pt 12pt、字号12pt。标签12pt灰色。多行文本框自适应高度。</p>
+
+<h3 class="subsection">1.5.7 FAB浮动按钮</h3>
+<p>52pt圆形按钮，固定在屏幕右下角（距右14pt/距底部Tab 78pt），生态绿底白图标26pt，带阴影。用于高频主操作（开始巡护/拍照/上报）。</p>
+
+<h3 class="subsection">1.5.8 ActionSheet</h3>
+<p>底部滑入式操作菜单，白底圆角顶部16pt，每个选项高52pt，取消选项加粗与上方间隔8pt。</p>
+
+<h3 class="subsection">1.5.9 Toast</h3>
+<p>黑色半透明（rgba(0,0,0,.8)）圆角8pt，居中显示，1.5~2.5秒自动消失，用于轻量反馈（保存成功、同步完成等）。</p>
+
+<h3 class="subsection">1.5.10 空状态</h3>
+<p>居中灰色图标+文字描述+可选操作按钮，图标48pt透明度0.4，文字13pt #5A7A6A。</p>
+
+<h3 class="subsection">1.5.11 离线状态横幅</h3>
+<p>紫色#7c3aed背景、白字11pt、高28pt、位于状态栏下方/导航栏上方（或悬浮顶部），显示"离线模式 · 数据将在联网后自动同步"+联网后切换为蓝色"正在同步..."。</p>
+
+<h3 class="subsection">1.5.12 水印相机组件</h3>
+<p>深色背景#1a1a1a全屏取景框，四角绿色对焦框，底部快门大按钮（72pt圆形白边），左下角相册/右下角切换摄像头。水印信息（GPS/时间/方位/巡护员）半透明黑底白字显示在左下角，不可关闭，确保取证有效性。</p>
+
+<div class="phone-wrap">
+  <div class="phone">
+    <div class="phone-screen" style="background:#000">
+      <div class="phone-status" style="background:#000;color:#fff">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="offline-dot"></span><span class="st-icon">🔋</span></span></div>
+      <div class="phone-header dark"><span class="back">‹</span><span class="title">水印相机</span><span class="right-btn">相册</span></div>
+      <div class="phone-body" style="padding:0;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative">
+        <div class="p-watermark" style="width:100%;height:100%;border-radius:0;margin:0;display:flex;align-items:center;justify-content:center">
+          <div class="p-camera-viewfinder">
+            <div class="p-vf-c tl"></div><div class="p-vf-c tr"></div>
+            <div class="p-vf-c bl"></div><div class="p-vf-c br"></div>
+          </div>
+          <div class="wm-corner" style="position:absolute;left:10px;bottom:100px;background:rgba(0,0,0,.55);color:#fff;padding:6px 8px;border-radius:4px;font-size:9px;line-height:1.5">
+            诺水河保护区<br>N32°28′15″ E107°15′42″<br>海拔: 523m 方位: SE 135°<br>2026-06-30 09:41:28<br>巡护员: 张建国
+          </div>
+          <div style="position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:space-around;align-items:center;padding:0 30px">
+            <div style="width:40px;height:40px;border-radius:8px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px">🖼️</div>
+            <div style="width:72px;height:72px;border-radius:50%;border:4px solid #fff;display:flex;align-items:center;justify-content:center"><div style="width:58px;height:58px;border-radius:50%;background:#fff"></div></div>
+            <div style="width:40px;height:40px;border-radius:8px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px">🔄</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-annotations">
+    <div class="anno-title">水印相机关键说明</div>
+    <ol>
+      <li><b>强制水印：</b>所有通过APP拍摄的照片自动叠加GPS/时间/海拔/方位/巡护员信息，不可关闭，确保证据链完整。</li>
+      <li><b>对焦框：</b>四角绿色L型标记，明确取景范围。</li>
+      <li><b>大快门按钮：</b>72pt圆形白快门，戴手套可准确点击。</li>
+      <li><b>离线可用：</b>无网时照片保存在本地，水印信息基于GPS实时计算（即使无网络GPS仍可工作）。</li>
+      <li><b>深色UI：</b>摄像头界面全黑，减少反光和电量消耗，保护夜视能力。</li>
+      <li><b>快捷切换：</b>支持照片/视频/录音/热成像（外接）模式切换。</li>
+    </ol>
+  </div>
+</div>
+
+
+<!-- ========== 第2章 ========== -->
+<h1 class="chapter" id="ch2">第2章 整体框架设计</h1>
+
+<h2 class="section" id="s2-1">2.1 APP整体架构</h2>
+<p>APP采用四层架构：启动层 → 认证层 → 主框架层 → 功能页层，层间单向依赖，确保启动快速、认证安全、主框架稳定。</p>
+
+<div class="mermaid-wrap">
+<div class="mermaid">
+flowchart TB
+    subgraph L1["① 启动层 Splash"]
+        A1[闪屏 2s] --> A2[权限检测<br/>GPS/相机/存储]
+        A2 --> A3{网络状态检测}
+    end
+    subgraph L2["② 认证层 Auth"]
+        B1[登录页<br/>工号+密码/生物识别] --> B2{已登录?}
+        B2 -->|是| C1
+        B2 -->|否/首次| B3[引导页<br/>3页功能引导]
+        B3 --> B1
+    end
+    subgraph L3["③ 主框架层 MainFrame"]
+        C1[主框架<br/>5Tab底部导航+顶部导航栏]
+        C1 --> C2[全局离线横幅]
+        C1 --> C3[全局同步队列管理器]
+        C1 --> C4[全局GPS服务]
+    end
+    subgraph L4["④ 功能页层 Pages"]
+        D1[🗺️ 地图模块]
+        D2[🥾 巡护模块<br/>核心模块]
+        D3[📋 任务模块]
+        D4[🔍 识别模块]
+        D5[👤 我的模块]
+    end
+    A3 -->|有缓存Token| C1
+    A3 -->|无Token/过期| B1
+    C1 --> D1 & D2 & D3 & D4 & D5
+    style L1 fill:#f0fdf4,stroke:#2D7D46,stroke-width:2px
+    style L2 fill:#fffbeb,stroke:#d97706,stroke-width:2px
+    style L3 fill:#eff6ff,stroke:#2563eb,stroke-width:2px
+    style L4 fill:#f5f3ff,stroke:#7c3aed,stroke-width:2px
+</div>
+</div>
+
+<h3 class="subsection">各层职责</h3>
+<table>
+  <thead><tr><th>层级</th><th>页面/组件</th><th>核心职责</th><th>离线策略</th></tr></thead>
+  <tbody>
+    <tr><td>启动层</td><td>Splash、权限检测</td><td>展示品牌、申请必要权限（GPS/相机/存储/通知）、检测网络与Token状态</td><td>无网不阻止进入APP，仅提示离线</td></tr>
+    <tr><td>认证层</td><td>登录、引导页</td><td>身份认证（Token/JWT）、生物识别快捷登录、首次使用引导</td><td>支持离线登录（本地缓存最近一次凭证）</td></tr>
+    <tr><td>主框架层</td><td>TabBar、导航栏、离线横幅、同步管理器</td><td>提供Tab导航、全局状态（网络/定位/同步）、全局通知</td><td>离线横幅始终可见、同步队列持久化</td></tr>
+    <tr><td>功能页层</td><td>20+功能页面</td><td>具体业务功能（地图/巡护/任务/识别/我的）</td><td>核心功能全部支持离线本地操作</td></tr>
+  </tbody>
+</table>
+
+<h2 class="section" id="s2-2">2.2 底部Tab导航设计</h2>
+<p>5个固定Tab是用户进入各功能模块的唯一主入口，Tab顺序根据使用频率排列：巡护（最高频）居中偏左。</p>
+
+<table>
+  <thead><tr><th>顺序</th><th>Tab</th><th>图标</th><th>使用频率</th><th>核心功能</th><th>Badge触发条件</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>地图</td><td>🗺️</td><td>高频</td><td>GIS地图、定位、图层、量测、离线地图</td><td>离线地图可更新</td></tr>
+    <tr><td>2</td><td>巡护</td><td>🥾</td><td>最高频（每日）</td><td>开始巡护、轨迹记录、事件上报、多媒体取证</td><td>进行中巡护/待同步记录</td></tr>
+    <tr><td>3</td><td>任务</td><td>📋</td><td>中频</td><td>任务列表、任务详情、打卡执行</td><td>新任务指派/任务即将到期</td></tr>
+    <tr><td>4</td><td>识别</td><td>🔍</td><td>中频（科考）</td><td>物种AI识别、识别记录、物种百科</td><td>识别完成/识别结果待确认</td></tr>
+    <tr><td>5</td><td>我的</td><td>👤</td><td>低频</td><td>个人中心、设置、离线包管理、反馈</td><td>缓存超阈值/新版本</td></tr>
+  </tbody>
+</table>
+
+<div class="notice">
+  <strong>Tab切换规则：</strong>Tab切换保留各Tab页面栈状态（不重置），回到原Tab时恢复上次浏览位置。从Tab页进入二级页后，底部Tab栏隐藏，返回后恢复。巡护进行中时，切换Tab不中断轨迹记录，巡护Tab显示红点+持续的小状态条。
+</div>
+
+<h2 class="section" id="s2-3">2.3 导航栏设计</h2>
+<p>APP共三种导航栏样式，根据页面类型自动切换：</p>
+
+<table>
+  <thead><tr><th>类型</th><th>样式</th><th>适用页面</th><th>返回按钮</th><th>右侧按钮</th></tr></thead>
+  <tbody>
+    <tr><td>标准导航栏</td><td>白底、深字#1A2E24、底部1pt分隔线</td><td>列表页、表单页、设置页、详情页等绝大多数二级页</td><td>左上角"‹ 返回"（44pt点击区）</td><td>根据页面（保存/更多/筛选等）</td></tr>
+    <tr><td>透明导航栏</td><td>透明底、白字、浮于内容之上，滚动时渐变为白底深字</td><td>地图首页、大图预览、个人中心头部</td><td>白色"‹ 返回"，圆形半透明黑底</td><td>白色图标，圆形半透明底</td></tr>
+    <tr><td>深色导航栏</td><td>#1a1a1a黑底、白字、无分隔线</td><td>水印相机、视频录制、录音、夜间模式、热成像</td><td>白色"‹ 取消"</td><td>切换/闪光灯等白色图标</td></tr>
+  </tbody>
+</table>
+
+<div class="notice">
+  <strong>标题规则：</strong>导航栏标题居中17pt/600，不超过12字超长截断。首页Tab无返回按钮，标题为"地图""巡护""任务""识别""我的"。二级页标题显示页面名称，左上角固定返回。三级及以上页面保留相同导航结构。<br>
+  <strong>返回手势：</strong>全APP支持iOS侧滑返回/Android返回键，不依赖点击返回按钮。
+</div>
+
+<h2 class="section" id="s2-4">2.4 页面转场动画</h2>
+<table>
+  <thead><tr><th>场景</th><th>动画类型</th><th>时长</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>Tab切换</td><td>淡入淡出</td><td>200ms</td><td>不使用左右滑动，避免与返回手势冲突</td></tr>
+    <tr><td>进入详情页</td><td>全屏右滑推进</td><td>300ms</td><td>新页面从右侧滑入，返回时向右滑出</td></tr>
+    <tr><td>表单/编辑页</td><td>底部滑入（Modal）</td><td>350ms</td><td>新建/上报/登录等表单页从底部升起，带半透明遮罩</td></tr>
+    <tr><td>弹窗/ActionSheet</td><td>淡入+底部滑入</td><td>250ms</td><td>轻量操作从底部弹出，点击遮罩关闭</td></tr>
+    <tr><td>相机/全屏媒体</td><td>淡入+缩放</td><td>300ms</td><td>相机/视频预览快速淡入，减少延迟感</td></tr>
+    <tr><td>Toast/HUD</td><td>淡入</td><td>200ms</td><td>无位移，纯透明度变化</td></tr>
+  </tbody>
+</table>
+
+<h2 class="section" id="s2-5">2.5 离线模式全局设计</h2>
+
+<h3 class="subsection">网络状态检测机制</h3>
+<ul>
+  <li><strong>实时检测：</strong>使用NWPathMonitor(iOS)/ConnectivityManager(Android)实时监听网络变化，状态切换延迟<1秒。</li>
+  <li><strong>质量分级：</strong>网络分为4级——WiFi（优）/4G（良）/3G-2G（弱）/无网（离线），弱网下自动调整策略（压缩图片、分片上传、延后大文件）。</li>
+  <li><strong>心跳探测：</strong>每30秒发送一次轻量心跳包确认真正可达性（避免"假信号"）。</li>
+</ul>
+
+<h3 class="subsection">离线横幅样式</h3>
+<div class="phone-wrap">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="offline-dot"></span><span class="st-icon">🔋</span></span></div>
+      <div class="p-banner-offline">📡 离线模式 · 数据将在联网后自动同步（待同步12条）</div>
+      <div class="phone-header" style="border-bottom:none"><span class="back">‹</span><span class="title">巡护</span></div>
+      <div class="phone-body" style="padding-top:0">
+        <div class="p-stats">
+          <div class="stat"><span class="stat-val">5.8</span><span class="stat-lbl">里程(km)</span></div>
+          <div class="stat"><span class="stat-val">01:23</span><span class="stat-lbl">时长</span></div>
+          <div class="stat"><span class="stat-val">3</span><span class="stat-lbl">记录</span></div>
+        </div>
+        <div class="p-card">
+          <div class="pc-title">🔴 巡护进行中</div>
+          <div class="pc-sub">轨迹记录中 · GPS信号良好</div>
+          <div class="pc-row"><span>GPS精度</span><span class="mono" style="color:var(--primary)">±3m</span></div>
+        </div>
+        <div class="p-sync-bar"><span class="sync-spin"></span>本地缓存队列：3照片·2事件·0视频（共5条）</div>
+      </div>
+      <div class="phone-nav">
+        <div class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+        <div class="nav-item active"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span></div>
+        <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+        <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+        <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-annotations">
+    <div class="anno-title">离线横幅说明</div>
+    <ol>
+      <li><b>位置：</b>固定在状态栏下方、导航栏上方，全页面可见（不随页面滚动）。</li>
+      <li><b>紫色背景#7c3aed：</b>明确传达离线状态，与其他状态色区分。</li>
+      <li><b>信息：</b>显示"离线模式"+待同步条数，让巡护员知道数据并未丢失。</li>
+      <li><b>同步中（联网后）：</b>横幅变蓝色#2563eb，显示"正在同步 X/Y · Z%"和进度条。</li>
+      <li><b>同步完成：</b>横幅变绿色#2D7D46显示"同步完成"2秒后自动消失。</li>
+      <li><b>点击：</b>点击横幅跳转到"记录缓存列表"，查看详细同步状态。</li>
+    </ol>
+  </div>
+</div>
+
+<h3 class="subsection">离线可操作功能清单</h3>
+<table>
+  <thead><tr><th>功能</th><th>离线可用</th><th>本地存储</th><th>同步策略</th></tr></thead>
+  <tbody>
+    <tr><td>地图浏览（已下载离线包）</td><td><span class="p-tag success-t">完全可用</span></td><td>MBTiles矢量瓦片</td><td>预下载</td></tr>
+    <tr><td>GPS定位/轨迹记录</td><td><span class="p-tag success-t">完全可用</span></td><td>SQLite本地</td><td>联网后增量同步</td></tr>
+    <tr><td>拍照/视频/录音（含水印）</td><td><span class="p-tag success-t">完全可用</span></td><td>本地沙盒+数据库记录</td><td>分片断点续传</td></tr>
+    <tr><td>异常事件上报</td><td><span class="p-tag success-t">完全可用</span></td><td>本地队列（优先级标记）</td><td>紧急事件SMS兜底+网络恢复补传</td></tr>
+    <tr><td>任务打卡/签到</td><td><span class="p-tag success-t">完全可用</span></td><td>本地记录GPS+时间</td><td>联网后上传</td></tr>
+    <tr><td>物种识别（本地模型）</td><td><span class="p-tag offline-t">可用（精度稍低）</span></td><td>本地TFLite模型</td><td>结果本地保存，联网后可云端复核</td></tr>
+    <tr><td>历史记录查看</td><td><span class="p-tag success-t">完全可用</span></td><td>本地已同步数据</td><td>—</td></tr>
+    <tr><td>个人信息修改</td><td><span class="p-tag offline-t">可编辑</span></td><td>本地暂存</td><td>联网后上传</td></tr>
+    <tr><td>新任务接收</td><td><span class="p-tag danger-t">不可用</span></td><td>—</td><td>需联网</td></tr>
+    <tr><td>云端AI识别（高精度）</td><td><span class="p-tag danger-t">不可用</span></td><td>自动降级为本地模型</td><td>联网后自动重试</td></tr>
+    <tr><td>数据同步/上报PC端</td><td><span class="p-tag danger-t">不可用</span></td><td>进入队列等待</td><td>网络恢复自动触发</td></tr>
+  </tbody>
+</table>
+
+<h3 class="subsection">同步队列指示器</h3>
+<p>全局维护一个持久化的同步队列（基于Room/CoreData），每个待同步项有：类型、优先级（紧急/高/普通）、状态（等待/上传中/失败）、重试次数、创建时间。同步策略：</p>
+<ul>
+  <li><strong>网络恢复时：</strong>自动按优先级顺序同步，紧急事件优先。</li>
+  <li><strong>WiFi下：</strong>自动同步所有内容包括视频。</li>
+  <li><strong>蜂窝网络：</strong>默认仅同步文本和压缩图片，视频询问用户或WiFi下传。</li>
+  <li><strong>冲突处理：</strong>采用"最后写入胜出+冲突日志"策略，冲突项在PC端审核时提示。</li>
+  <li><strong>失败重试：</strong>指数退避重试（1s/2s/4s/8s/16s/30s/60s，最大间隔5分钟），连续失败10次标记为"需手动处理"。</li>
+</ul>
+
+<h2 class="section" id="s2-6">2.6 全局交互</h2>
+<table>
+  <thead><tr><th>交互</th><th>适用场景</th><th>规范</th></tr></thead>
+  <tbody>
+    <tr><td>下拉刷新</td><td>列表页（任务列表、识别记录、缓存列表）</td><td>标准下拉控件，刷新动画为绿色水滴。地图页、相机页、表单页禁用。</td></tr>
+    <tr><td>上拉加载</td><td>长列表（历史记录、消息）</td><td>距底部100pt自动加载，显示"加载中..."菊花，加载完显示"没有更多了"。</td></tr>
+    <tr><td>左滑操作</td><td>列表项（缓存记录、识别历史）</td><td>左滑露出"删除/重试/编辑"操作按钮，宽度≤80pt，红色为删除。</td></tr>
+    <tr><td>长按操作</td><td>地图标记点、列表项、照片</td><td>长按400ms触发快捷菜单（预览/导航/分享/删除），带震动反馈。</td></tr>
+    <tr><td>手势返回</td><td>所有二级及以下页面</td><td>支持iOS边缘侧滑返回、Android系统返回键，与底部Tab无冲突。</td></tr>
+    <tr><td>双指缩放</td><td>地图页、图片预览</td><td>地图双指缩放/旋转/俯仰；图片预览双指缩放、双击放大。</td></tr>
+    <tr><td>摇一摇</td><td>全局（可选）</td><td>摇一摇快速反馈问题（可在设置中关闭）。</td></tr>
+  </tbody>
+</table>
+
+
+<!-- ========== 第3章 ========== -->
+<h1 class="chapter" id="ch3">第3章 完整导航体系与功能菜单</h1>
+
+<h2 class="section" id="s3-1">3.1 APP页面跳转关系图</h2>
+<p>以下Mermaid流程图展示5个Tab下的完整页面层级关系与主要跳转路径。</p>
+
+<div class="mermaid-wrap">
+<div class="mermaid">
+flowchart LR
+    Splash([启动页]) --> Login[登录页]
+    Login --> Onboard[引导页]
+    Onboard --> Login
+    Login --> MainFrame[主框架 5Tab]
+
+    MainFrame --> Tab1[🗺️ 地图Tab]
+    MainFrame --> Tab2[🥾 巡护Tab]
+    MainFrame --> Tab3[📋 任务Tab]
+    MainFrame --> Tab4[🔍 识别Tab]
+    MainFrame --> Tab5[👤 我的Tab]
+
+    %% Tab1 地图
+    Tab1 --> M1[地图首页]
+    M1 --> M2[离线地图包管理]
+    M1 --> M3[图层选择]
+    M1 --> M4[量测工具]
+    M1 --> M5[标记点详情]
+    M2 --> M2a[离线包下载/详情]
+    M3 --> M3a[图层透明度调节]
+
+    %% Tab2 巡护
+    Tab2 --> P1[巡护首页]
+    P1 --> P2[轨迹记录页]
+    P2 --> P3[异常事件上报]
+    P2 --> P4[多媒体取证]
+    P3 --> P4
+    P3 --> P3a[事件类型选择]
+    P4 --> P4a[水印相机]
+    P4 --> P4b[视频录制]
+    P4 --> P4c[录音]
+    P1 --> P5[记录缓存列表]
+    P5 --> P5a[记录详情]
+    P2 --> P6[结束巡护-总结]
+
+    %% Tab3 任务
+    Tab3 --> T1[任务列表]
+    T1 --> T2[任务详情]
+    T2 --> T3[任务执行/打卡]
+    T3 --> T3a[关键点打卡]
+    T3 --> T3b[拍照上传]
+    T3 --> T3c[完成提交]
+    T1 --> T4[任务筛选]
+
+    %% Tab4 识别
+    Tab4 --> A1[识别首页]
+    A1 --> A2[拍照识别]
+    A1 --> A3[相册选择]
+    A2 --> A4[识别结果]
+    A3 --> A4
+    A4 --> A5[物种详情百科]
+    A4 --> A6[关联到事件/记录]
+    A1 --> A7[识别记录历史]
+    A7 --> A4
+
+    %% Tab5 我的
+    Tab5 --> Me1[个人中心首页]
+    Me1 --> Me2[个人信息]
+    Me2 --> Me2a[修改密码]
+    Me1 --> Me3[离线包管理]
+    Me1 --> Me4[缓存清理]
+    Me1 --> Me5[意见反馈]
+    Me1 --> Me6[关于APP]
+    Me1 --> Me7[设置]
+    Me1 --> Me8[退出登录]
+
+    %% 全局快捷
+    P3 -.->|紧急快捷| Emergency[紧急上报确认]
+    Emergency --> P3
+
+    classDef tab fill:#e8f5e9,stroke:#2D7D46,stroke-width:2px
+    classDef page fill:#fff,stroke:#cbd5e1,stroke-width:1px
+    classDef special fill:#fef2f2,stroke:#dc2626,stroke-width:2px
+    class Tab1,Tab2,Tab3,Tab4,Tab5 tab
+    class Splash,Login,Onboard,Emergency special
+</div>
+</div>
+
+<h2 class="section" id="s3-2">3.2 完整菜单树表格</h2>
+
+<table>
+  <thead><tr><th style="width:10%">Tab</th><th style="width:18%">页面</th><th style="width:42%">功能点</th><th style="width:15%">离线支持</th><th>与PC端关联</th></tr></thead>
+  <tbody>
+    <tr><td rowspan="5"><strong>启动/认证</strong></td><td>闪屏 Splash</td><td>品牌展示、版本号、环境检测</td><td><span class="p-tag success-t">支持</span></td><td>—</td></tr>
+    <tr><td>登录页</td><td>工号+密码登录、生物识别（指纹/FaceID）、记住登录、服务器地址配置</td><td><span class="p-tag success-t">离线凭证</span></td><td>认证服务PC端统一管理</td></tr>
+    <tr><td>引导页（3页）</td><td>功能介绍、权限申请引导、离线包预下载提示</td><td><span class="p-tag success-t">支持</span></td><td>—</td></tr>
+    <tr><td>忘记密码</td><td>手机号验证重置</td><td><span class="p-tag danger-t">需联网</span></td><td>账号体系打通</td></tr>
+
+    <tr><td rowspan="5"><strong>🗺️<br>地图</strong></td><td>地图首页</td><td>GIS地图显示、当前定位、轨迹线展示、事件/任务点标记、图层切换、量测（距离/面积）、我的位置、指北针、比例尺、强光模式切换</td><td><span class="p-tag success-t">离线包支持</span></td><td>PC端GIS地图同数据源（GeoServer）</td></tr>
+    <tr><td>离线地图包管理</td><td>离线包列表、按保护区/区域下载、进度显示、暂停/继续、自动更新检查、存储占用、删除离线包</td><td><span class="p-tag success-t">核心离线</span></td><td>离线包由PC端后台发布更新</td></tr>
+    <tr><td>图层选择</td><td>底图切换（卫星/地形/标准）、业务图层（保护区界/功能分区/巡护路线/物种分布/水文）、图层开关、透明度调节</td><td><span class="p-tag success-t">离线图层已缓存</span></td><td>图层配置与PC端一致</td></tr>
+    <tr><td>量测工具</td><td>距离量测（折线）、面积量测（多边形）、清除、单位切换（m/km）</td><td><span class="p-tag success-t">本地计算</span></td><td>量测结果可上报</td></tr>
+    <tr><td>标记点详情</td><td>点击地图标记点查看详情（事件/任务/航点）、导航到该点、关联记录跳转</td><td><span class="p-tag success-t">本地数据</span></td><td>详情数据来自PC端</td></tr>
+
+    <tr><td rowspan="7"><strong>🥾<br>巡护</strong></td><td>巡护首页</td><td>今日状态卡片、当前任务、开始巡护大按钮、历史巡护入口、待同步提醒、今日统计</td><td><span class="p-tag success-t">完全支持</span></td><td>任务由PC端派发</td></tr>
+    <tr><td>轨迹记录页</td><td>开始/暂停/继续/结束巡护、实时里程计时速度、GPS信号状态、轨迹线绘制、快捷入口（拍照/事件/任务）、锁屏保持、低功耗提示</td><td><span class="p-tag success-t">核心离线</span></td><td>轨迹数据同步到PC端"巡护记录"</td></tr>
+    <tr><td>异常事件上报</td><td>事件类型选择（非法捕鱼/采砂/排污/地质灾害/伤病野生动物/其他）、拍照/视频、位置自动获取、描述输入、紧急标记、提交</td><td><span class="p-tag success-t">离线缓存</span></td><td>事件实时推送PC端告警中心</td></tr>
+    <tr><td>多媒体取证</td><td>水印相机（强制GPS/时间/方位水印）、视频录制、录音、相册选择、预览、标记类型、关联事件/物种</td><td><span class="p-tag success-t">离线可用</span></td><td>多媒体同步到PC端证据库</td></tr>
+    <tr><td>记录缓存列表</td><td>待同步/已同步/失败Tab、进度显示、手动触发同步、单条重试、删除、详情查看</td><td><span class="p-tag success-t">本地管理</span></td><td>同步后在PC端审核</td></tr>
+    <tr><td>记录详情</td><td>完整记录内容、地图位置、照片预览、同步状态、编辑、备注</td><td><span class="p-tag success-t">本地查看</span></td><td>与PC端详情一致</td></tr>
+    <tr><td>结束巡护总结</td><td>巡护统计（里程/时长/事件数/照片数）、评价、备注、提交完成</td><td><span class="p-tag success-t">本地生成</span></td><td>总结同步PC端归档</td></tr>
+
+    <tr><td rowspan="4"><strong>📋<br>任务</strong></td><td>任务列表</td><td>待执行/进行中/已完成Tab、下拉刷新、搜索、按类型筛选、任务卡片（名称/类型/截止时间/距离）</td><td><span class="p-tag success-t">已下载任务</span></td><td>任务由PC端创建派发</td></tr>
+    <tr><td>任务详情</td><td>任务名称/描述、路线地图、关键点列表、时间要求、附件下载、开始执行按钮</td><td><span class="p-tag success-t">已缓存详情</span></td><td>详情编辑在PC端</td></tr>
+    <tr><td>任务执行/打卡</td><td>签到（自动GPS+时间）、关键点导航、到达打卡（自动检测范围）、拍照上传、填写表单、完成提交</td><td><span class="p-tag success-t">离线打卡</span></td><td>打卡数据回传PC端</td></tr>
+    <tr><td>任务筛选</td><td>按状态/类型/时间/距离筛选</td><td><span class="p-tag success-t">本地筛选</span></td><td>—</td></tr>
+
+    <tr><td rowspan="4"><strong>🔍<br>识别</strong></td><td>识别首页</td><td>拍照识别大按钮、相册选择、最近识别、常见物种快捷</td><td><span class="p-tag offline-t">本地模型</span></td><td>识别模型由PC端下发更新</td></tr>
+    <tr><td>识别中</td><td>识别进度、AI分析动画、取消</td><td><span class="p-tag offline-t">本地推理</span></td><td>云端高精度识别需联网</td></tr>
+    <tr><td>识别结果</td><td>物种名称、置信度、保护等级（五色）、分类、形态特征、生境介绍、分布、相似物种、确认/修正/重新识别、关联记录</td><td><span class="p-tag offline-t">本地百科缓存</span></td><td>结果同步PC端物种数据库</td></tr>
+    <tr><td>识别记录</td><td>按时间列表、筛选、详情查看、归档、关联到事件/巡护记录、导出</td><td><span class="p-tag success-t">本地存储</span></td><td>归入PC端物种档案</td></tr>
+
+    <tr><td rowspan="6"><strong>👤<br>我的</strong></td><td>个人中心首页</td><td>头像/姓名/工号/部门、巡护统计（总里程/天数/事件数）、功能菜单列表、设置入口</td><td><span class="p-tag success-t">本地展示</span></td><td>个人信息与PC端统一</td></tr>
+    <tr><td>个人信息/密码修改</td><td>头像修改、联系方式、修改密码（旧密码+新密码+确认）</td><td><span class="p-tag offline-t">本地暂存</span></td><td>同步PC端账号系统</td></tr>
+    <tr><td>离线包管理</td><td>已下载离线包列表、更新检查、自动下载设置、存储占用、删除</td><td><span class="p-tag success-t">本地管理</span></td><td>离线包PC端后台发布</td></tr>
+    <tr><td>缓存清理</td><td>缓存分类（地图/照片/其他）、占用大小、一键清理、清理建议</td><td><span class="p-tag success-t">本地操作</span></td><td>—</td></tr>
+    <tr><td>意见反馈</td><td>类型选择（Bug/建议/其他）、描述输入、截图上传、联系方式、提交</td><td><span class="p-tag offline-t">离线暂存</span></td><td>反馈提交到PC端工单</td></tr>
+    <tr><td>关于/设置/退出</td><td>版本号、检查更新、用户协议、隐私政策；设置（强光模式/省电/通知/生物识别）；退出登录确认</td><td><span class="p-tag success-t">本地为主</span></td><td>版本更新由PC端后台发布</td></tr>
+  </tbody>
+</table>
+
+<h2 class="section" id="s3-3">3.3 页面跳转规则</h2>
+
+<table>
+  <thead><tr><th>规则</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>Tab切换不重置页面栈</td><td>切换Tab后再切回，保留原页面状态和滚动位置，提升连续使用体验。</td></tr>
+    <tr><td>二级页隐藏Tab栏</td><td>从Tab首页进入任何二级页面后，底部Tab栏隐藏（避免误切），返回Tab首页后恢复。</td></tr>
+    <tr><td>巡护进行中全局保留</td><td>巡护进行中切换Tab或进入其他页面时，顶部显示绿色"巡护中"小状态条，点击可快速返回轨迹记录页，轨迹持续记录不中断。</td></tr>
+    <tr><td>紧急上报全局可达</td><td>通过APP图标快捷方式（3D Touch/长按）、通知栏快捷按钮、摇一摇（可选）可直接进入紧急上报流程，不需要解锁APP（需权限）。</td></tr>
+    <tr><td>相机/视频全屏Modal</td><td>相机/视频/录音页面以全屏Modal方式展示（底部滑入），深色UI，完成/取消后返回上一页。</td></tr>
+    <tr><td>登录后跳转</td><td>首次登录→引导页→首页（巡护Tab）；Token有效期内自动登录→上次停留Tab；Token过期→登录页→首页。</td></tr>
+    <tr><td>深链接支持</td><td>支持PC端扫码/推送通知直接打开指定页面（任务详情/事件详情），通过URL Scheme: <code>patrol://page/{name}?id={xxx}</code>。</td></tr>
+    <tr><td>返回闭环</td><td>所有二级页必须有明确返回路径；从通知/深链接进入的页面提供"返回首页"按钮，避免用户被困。</td></tr>
+  </tbody>
+</table>
+
+
+<!-- ========== 第4章 ========== -->
+<h1 class="chapter" id="ch4">第4章 逐页面详细UI设计</h1>
+<p>本章按Tab组织，详细设计每个页面的UI、野外场景、功能逻辑、PC端关联、离线策略和异常处理。所有页面均使用<code>.feature-block</code>包裹，遵循统一结构。</p>
+
+<!-- ========== 启动/登录/引导 ========== -->
+<h2 class="section" id="s4-0">启动/登录/引导页</h2>
+
+<div class="feature-block" id="page-splash">
+  <h3 class="subsection">Splash闪屏页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员在山里清晨开机，APP冷启动。需快速加载（<2s），不能因无网络卡死在启动页。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>用户点击APP图标启动</li>
+      <li><strong>处理：</strong>显示品牌闪屏2s → 异步检测权限（GPS/相机/存储）→ 检测网络状态 → 读取本地Token</li>
+      <li><strong>输出：</strong>有有效Token→直接进入主框架；Token过期/无→进入登录页；首次安装→引导页</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>Token由PC端统一认证服务签发（JWT），有效期7天，支持刷新Token机制。启动时不强制联网校验（离线可进），但联网后后台校验有效性。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen" style="background:linear-gradient(135deg,#0f1f12 0%,#1a5f2a 100%);align-items:center;justify-content:center;display:flex;flex-direction:column;color:#fff">
+        <div style="font-size:72px;margin-bottom:20px">🌿</div>
+        <div style="font-size:26px;font-weight:700;letter-spacing:2px">诺水河巡护</div>
+        <div style="font-size:13px;opacity:.7;margin-top:8px;letter-spacing:4px">PATROL APP</div>
+        <div style="position:absolute;bottom:100px;font-size:11px;opacity:.6">v2.0.1</div>
+        <div style="position:absolute;bottom:60px;width:100px;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden"><div style="width:40%;height:100%;background:#4ade80;border-radius:2px"></div></div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>品牌区：</b>大Logo+应用名"诺水河巡护"+英文PATROL APP，深绿渐变背景。</li>
+        <li><b>版本号：</b>底部显示版本号v2.0.1，便于问题反馈。</li>
+        <li><b>加载进度条：</b>底部绿色进度条显示初始化进度，避免用户以为卡死。</li>
+        <li><b>无网不阻塞：</strong>即使无网络也会在2s后自动进入（有缓存Token进主框架，否则进登录页）。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>闪屏阶段不发起网络请求（除异步Token校验），所有必要资源（字体/图片）已打包在APP内。本地Token存在Keychain/Keystore中，无网也能读取。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①权限被拒绝时弹引导弹窗（不阻塞进入）；②本地数据损坏时自动修复并提示；③首次启动无网时允许游客浏览离线地图（需登录才能巡护）。
+  </div>
+
+  <h4 class="sub-sub">UI元素清单</h4>
+  <table>
+    <thead><tr><th>元素</th><th>类型</th><th>样式</th></tr></thead>
+    <tbody>
+      <tr><td>Logo图标</td><td>Image</td><td>72×72pt 叶子emoji/品牌图标</td></tr>
+      <tr><td>应用名称</td><td>Label</td><td>26pt/700/白色，字间距2px</td></tr>
+      <tr><td>加载进度条</td><td>ProgressBar</td><td>宽100pt/高3pt，绿色进度</td></tr>
+      <tr><td>版本号</td><td>Label</td><td>11pt/白色60%透明</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="feature-block" id="page-login">
+  <h3 class="subsection">登录页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员在管理站连接WiFi时登录（首次登录需联网），之后可使用离线凭证/生物识别快速登录。强光下输入密码需足够大的输入框。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>工号+密码，或指纹/FaceID生物识别</li>
+      <li><strong>处理：</strong>联网认证→获取Token+用户信息+权限→缓存到本地；离线时校验本地最近一次凭证</li>
+      <li><strong>输出：</strong>登录成功→主框架（或引导页）；失败→错误提示</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>账号工号体系与PC端管理平台统一（PC端"用户管理"模块），权限/角色同步下发。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen" style="background:#fff">
+        <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="online-dot"></span><span class="st-icon">🔋</span></span></div>
+        <div class="phone-body" style="padding:40px 28px">
+          <div style="text-align:center;margin-bottom:40px">
+            <div style="font-size:56px">🌿</div>
+            <div style="font-size:22px;font-weight:700;color:var(--primary-dark);margin-top:10px">诺水河巡护</div>
+            <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">野外巡护 · 离线可用</div>
+          </div>
+          <div class="p-input" style="height:48px;font-size:14px;color:var(--text-primary)">👤  工号：ZJG001</div>
+          <div class="p-input" style="height:48px;font-size:14px;color:var(--text-primary)">🔒  密码：••••••••</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 20px;font-size:12px;color:var(--text-secondary)">
+            <label style="display:flex;align-items:center;gap:4px"><input type="checkbox" checked> 记住登录</label>
+            <a style="color:var(--primary)">忘记密码？</a>
+          </div>
+          <button class="p-btn primary">登 录</button>
+          <div style="display:flex;gap:12px;justify-content:center;margin-top:20px">
+            <div style="width:44px;height:44px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:20px">👆</div>
+          </div>
+          <div style="text-align:center;font-size:11px;color:var(--text-secondary);margin-top:8px">指纹/FaceID快捷登录</div>
+          <div style="position:absolute;bottom:40px;left:0;right:0;text-align:center;font-size:11px;color:var(--text-placeholder)">
+            服务器：nsr.patrol.gov.cn <a style="color:var(--primary)">切换</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>品牌区：</b>顶部Logo+应用名+标语，强化品牌识别。</li>
+        <li><b>工号/密码输入：</b>高48pt（大于常规44pt），戴手套可点，字号14pt。</li>
+        <li><b>登录按钮：</b>全宽生态绿主按钮46pt高，视觉突出。</li>
+        <li><b>生物识别：</b>支持指纹/FaceID，一键登录（需首次设置）。</li>
+        <li><b>服务器配置：</b>底部可切换服务器地址（测试/生产环境）。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>首次登录必须联网认证；之后可使用"记住登录"+本地凭证离线登录（有效期30天）。生物识别解锁无网也可用（仅解锁本地，不刷新Token）。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①密码错误3次锁定5分钟（防暴力破解）；②网络超时提示"网络不稳定，请检查后重试"，不清除已输入内容；③Token过期联网自动刷新，刷新失败重新登录。
+  </div>
+</div>
+
+<div class="feature-block" id="page-onboard">
+  <h3 class="subsection">引导页（3页轮播）</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>首次安装/大版本更新后展示，帮助巡护员快速了解核心功能（特别是离线模式和水印相机）。管理站WiFi环境下使用。
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>引导页内容支持PC端后台配置更新（通过Banners下发），可推送重要通知。
+  </div>
+  <div class="notice">
+    <strong>内容结构：</strong>3页轮播——①野外可用·离线优先（离线地图/离线记录）；②水印相机·一键取证（强制GPS+时间水印）；③一键上报·快速响应（紧急事件上报流程）。每页含插画+标题+描述+底部"跳过/下一步"按钮，最后一页为"开始使用"。
+  </div>
+  <div class="offline-tag">
+    <strong>离线策略：</strong>引导页资源打包在APP内，无需联网。最后一页提供"预下载离线包"入口（建议WiFi下），可跳过进入APP后再下。
+  </div>
+</div>
+
+<!-- ========== Tab1 地图模块 ========== -->
+<h2 class="section" id="s4-1">Tab1 地图模块</h2>
+
+<div class="feature-block" id="page-map-home">
+  <h3 class="subsection">地图首页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员在山林中使用地图定位自己、查看巡护路线和周边事件点。晴天强光下需切换强光模式（高对比度），单手操作，按钮大。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>GPS位置、用户手势（缩放/平移/点击标记点）、图层切换操作</li>
+      <li><strong>处理：</strong>实时定位（默认跟随模式）、渲染离线矢量瓦片、绘制轨迹线/事件点/任务点、根据GPS精度显示定位圈</li>
+      <li><strong>输出：</strong>地图视图、当前位置标记、轨迹/事件/任务图层、量测结果、点击标记点→详情页</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>使用与PC端GIS相同的数据源（GeoServer发布的WMTS/WMS服务和MBTiles离线包），图层配置（保护区边界、功能分区、巡护路线、物种分布点）与PC端"一张图"模块保持一致。巡护员在地图上标记的新点同步到PC端进入审核流程。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status" style="background:transparent;color:#fff;position:absolute;top:0;left:0;right:0;z-index:10">9:41 <span class="st-icons"><span class="offline-dot"></span><span class="st-icon">📡</span><span class="st-icon">🔋</span></span></div>
+        <div class="p-banner-offline" style="position:absolute;top:40px;left:0;right:0;z-index:10">📡 离线模式 · 已加载核心区离线地图</div>
+        <div class="phone-header transparent" style="top:68px">
+          <span class="back" style="width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:20px">☀️</span>
+          <span class="title" style="margin-right:0">地图</span>
+          <span class="right-btn" style="width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px">⋯</span>
+        </div>
+        <div class="p-map" style="height:100%;border-radius:0;margin:0">
+          <span class="map-label">🗺️ GIS地图 · 青绿底</span>
+          <div class="map-me"></div>
+          <div style="position:absolute;top:140px;left:30%;width:12px;height:12px;border-radius:50%;background:var(--danger);border:2px solid #fff;box-shadow:0 0 0 6px rgba(220,38,38,.25)"></div>
+          <div style="position:absolute;top:220px;right:25%;width:12px;height:12px;border-radius:50%;background:var(--warning);border:2px solid #fff"></div>
+          <div style="position:absolute;left:30%;top:140px;width:120px;height:3px;background:var(--primary);transform:rotate(-20deg);transform-origin:left center;border-radius:2px"></div>
+          <div class="map-locate" style="top:140px">📍</div>
+          <div class="map-layer" style="top:182px">🗂️</div>
+          <div style="position:absolute;right:10px;top:224px;width:32px;height:32px;border-radius:6px;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.15);z-index:3">📏</div>
+          <div style="position:absolute;left:10px;bottom:90px;background:rgba(255,255,255,.95);padding:6px 10px;border-radius:6px;font-size:10px;color:var(--text-primary);box-shadow:0 1px 4px rgba(0,0,0,.1)">
+            <div>📍 N32°28′15″</div>
+            <div>E107°15′42″</div>
+            <div>精度 ±5m</div>
+          </div>
+          <div style="position:absolute;left:10px;bottom:10px;font-size:10px;color:#064e3b;background:rgba(255,255,255,.7);padding:2px 6px;border-radius:3px">比例尺 1:10000</div>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item active"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+          <div class="nav-item"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span></div>
+          <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+          <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+          <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>透明导航栏：</b>浮于地图上方，左强光切换/右更多，圆形半透明底。</li>
+        <li><b>离线横幅：</b>紫色显示离线状态+离线包加载信息。</li>
+        <li><b>地图区：</b>青绿色底，带网格线模拟地形，当前位置蓝色脉冲点。</li>
+        <li><b>地图标记：</b>红色=事件点、橙色=任务点、绿色线=已走轨迹。</li>
+        <li><b>右侧功能按钮：</b>定位📍/图层🗂️/量测📏，32pt圆形白底易点击。</li>
+        <li><b>左下角信息卡：</b>实时显示经纬度（等宽字体）、GPS精度。</li>
+        <li><b>强光模式按钮（☀️）：</b>切换后地图高对比度（深色陆域+蓝色水域+白色边界线），适合户外强光。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>使用已下载的MBTiles离线矢量瓦片渲染地图（无需网络）。GPS完全离线工作。已缓存的事件/任务点显示在地图上，新标记点本地存储。联网后自动加载新瓦片和新标记点。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①GPS信号弱时精度圈扩大+显示"GPS信号弱，请到开阔地"；②无离线包的区域显示灰色马赛克+"请下载该区域离线包"；③指南针受干扰时提示"请校准指南针（8字晃动手机）"；④电量低于20%弹出提示"是否降低GPS精度省电"。
+  </div>
+</div>
+
+<div class="feature-block" id="page-map-offline">
+  <h3 class="subsection">离线地图包管理</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员在管理站WiFi下下载/更新即将巡护区域的离线地图包。山里无网时依赖这些离线包浏览地图。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>用户选择离线包（按保护区/片区）、下载/暂停/删除操作</li>
+      <li><strong>处理：</strong>断点续传下载MBTiles文件、校验MD5、版本对比（有新版本提示更新）、存储空间检查</li>
+      <li><strong>输出：</strong>已下载离线包列表、下载进度、存储占用统计</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>离线地图包由PC端后台"地图管理"模块发布更新（含新卫星影像、保护区边界调整、新物种分布点等），APP端检测到新版本提示下载。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="online-dot"></span><span class="st-icon">🔋</span></span></div>
+        <div class="phone-header"><span class="back">‹</span><span class="title">离线地图包</span><span class="right-btn">设置</span></div>
+        <div class="p-banner-offline" style="background:#dbeafe;color:#1e40af;border-color:#60a5fa">📶 WiFi已连接 · 建议在WiFi下下载离线包</div>
+        <div class="phone-body" style="padding-top:4px">
+          <div class="p-card">
+            <div class="pc-title">存储使用</div>
+            <div style="height:8px;background:#e2e8f0;border-radius:4px;margin:8px 0;overflow:hidden"><div style="width:45%;height:100%;background:linear-gradient(90deg,#2D7D46,#4ade80);border-radius:4px"></div></div>
+            <div class="pc-row"><span>已用 1.2GB / 总可用 2.7GB</span><span style="color:var(--primary)">清理</span></div>
+          </div>
+
+          <div class="p-seg">
+            <div class="seg-item active">已下载</div>
+            <div class="seg-item">可下载</div>
+            <div class="seg-item">可更新</div>
+          </div>
+
+          <div class="p-list-item">
+            <div class="p-icon" style="background:#dbeafe;color:var(--info)">🗺️</div>
+            <div class="p-text"><div class="pt-title">诺水河核心区</div><div class="pt-sub">v2.3 · 286MB · 14天前更新</div></div>
+            <span class="p-badge green">最新</span>
+          </div>
+          <div class="p-list-item">
+            <div class="p-icon" style="background:#fef3c7;color:var(--warning)">🗺️</div>
+            <div class="p-text"><div class="pt-title">缓冲区-北段</div><div class="pt-sub">v2.1 · 198MB · 有更新v2.2</div></div>
+            <span class="p-badge orange">更新</span>
+          </div>
+          <div class="p-list-item">
+            <div class="p-icon" style="background:#ede9fe;color:var(--offline-purple)">🗺️</div>
+            <div class="p-text"><div class="pt-title">实验区全片</div><div class="pt-sub">下载中 · 45% · 156MB/348MB</div></div>
+            <span class="p-badge purple">⏸</span>
+          </div>
+          <div class="p-list-item">
+            <div class="p-icon" style="background:#e2e8f0;color:#64748b">🗺️</div>
+            <div class="p-text"><div class="pt-title">缓冲区-南段</div><div class="pt-sub">未下载 · 215MB</div></div>
+            <span class="p-badge blue">↓</span>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item active"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+          <div class="nav-item"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span></div>
+          <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+          <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+          <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>存储卡片：</b>显示已用/可用空间+进度条+一键清理。</li>
+        <li><b>分段Tab：</b>已下载/可下载/可更新三个状态分类。</li>
+        <li><b>离线包列表：</b>名称、版本、大小、更新时间、状态徽章。</li>
+        <li><b>下载进度：</b>下载中显示百分比和已传/总大小，支持暂停/继续。</li>
+        <li><b>WiFi提示：</b>蓝色横幅提示WiFi环境，避免流量消耗。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>离线包管理本身完全本地操作。下载需要网络（WiFi推荐，蜂窝需用户确认）。已下载离线包在无网时提供地图渲染。支持自动更新检查（联网时后台检测）。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①存储空间不足（<500MB）时红色警告+建议清理；②下载中断自动保存断点，下次续传；③下载失败重试3次后提示手动重试；④离线包损坏提示重新下载。
+  </div>
+</div>
+
+<div class="feature-block" id="page-map-layer">
+  <h3 class="subsection">图层选择页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员需要切换不同底图（标准/卫星/地形）或开关业务图层（物种分布点、巡护路线、水文）来完成不同任务。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>选择底图类型、勾选业务图层开关、调节透明度</li>
+      <li><strong>处理：</strong>切换底图渲染源、按开关状态显示/隐藏图层、按透明度滑块渲染图层叠加</li>
+      <li><strong>输出：</strong>地图视图实时更新</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>图层清单与PC端GIS"图层管理"一致，支持PC端配置推送新图层到APP。
+  </div>
+  <div class="notice">
+    <strong>UI布局：</strong>底部抽屉（ActionSheet高度）滑入，顶部显示当前底图选择（标准/卫星/地形三选一大图标），下方业务图层开关列表（带透明度滑块展开），底部"关闭/重置"按钮。
+  </div>
+  <div class="offline-tag">
+    <strong>离线策略：</strong>已下载离线包对应的图层在离线时可用（卫星图需要单独下载卫星离线包），未下载图层灰显提示"联网后可用"。
+  </div>
+</div>
+
+
+<!-- ========== Tab2 巡护模块 ========== -->
+<h2 class="section" id="s4-2">Tab2 巡护模块（核心模块）</h2>
+
+<div class="feature-block" id="page-patrol-home">
+  <h3 class="subsection">巡护首页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员到达巡护起点，打开APP点击"开始巡护"按钮。清晨无网、戴手套、可能下雨，按钮要大且醒目。首页也展示今日状态和待执行任务。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>用户打开巡护Tab、点击"开始巡护"、查看今日状态</li>
+      <li><strong>处理：</strong>加载今日任务（本地缓存）、检测GPS信号、判断是否有进行中巡护、显示今日统计</li>
+      <li><strong>输出：</strong>今日状态卡、开始巡护大按钮（或继续巡护按钮）、待同步提醒、今日任务列表</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>今日任务来自PC端"任务派发"模块；巡护结束后轨迹和记录同步到PC端"巡护记录管理"；待同步记录数同步自上次结束未上传数据。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="online-dot"></span><span class="st-icon">🔋</span></span></div>
+        <div class="p-banner-offline" style="display:none"></div>
+        <div class="phone-header"><span class="back"></span><span class="title">巡护</span><span class="right-btn">历史</span></div>
+        <div class="phone-body">
+          <div class="p-stats">
+            <div class="stat"><span class="stat-val">0.0</span><span class="stat-lbl">今日里程(km)</span></div>
+            <div class="stat"><span class="stat-val">00:00</span><span class="stat-lbl">巡护时长</span></div>
+            <div class="stat"><span class="stat-val">0</span><span class="stat-lbl">事件记录</span></div>
+          </div>
+
+          <div class="p-card" style="background:linear-gradient(135deg,#2D7D46,#1B5E20);color:#fff;border:none">
+            <div style="font-size:13px;opacity:.9;margin-bottom:6px">🌤️ 2026年6月30日 周二</div>
+            <div class="pc-title" style="color:#fff;font-size:18px">准备好开始今日巡护了吗？</div>
+            <div class="pc-sub" style="color:rgba(255,255,255,.8);margin-top:4px">当前GPS信号良好 · 核心区离线包已就绪</div>
+            <button class="p-btn" style="background:#fff;color:var(--primary);margin-top:14px;height:48px;font-size:16px">🥾 开始巡护</button>
+          </div>
+
+          <div class="p-sync-bar" style="background:#fef2f2;border-color:#fecaca;color:#991b1b">
+            <span style="width:14px;height:14px;border-radius:50%;background:var(--danger);display:inline-block;flex-shrink:0"></span>
+            有 3 条记录待同步 · <a style="color:var(--danger);font-weight:600">立即同步</a>
+          </div>
+
+          <h4 class="sub-sub" style="font-size:13px;color:var(--text-secondary);margin:12px 4px 8px">今日任务</h4>
+          <div class="p-list-item" style="border-radius:10px">
+            <div class="p-icon" style="background:#dbeafe;color:var(--info)">📍</div>
+            <div class="p-text"><div class="pt-title">核心区例行巡护</div><div class="pt-sub">路线：A线 · 约8km · 预计4h</div></div>
+            <span class="p-badge blue">待执行</span>
+          </div>
+          <div class="p-list-item" style="border-radius:10px">
+            <div class="p-icon" style="background:#ede9fe;color:var(--offline-purple)">🔍</div>
+            <div class="p-text"><div class="pt-title">大鲵产卵场复查</div><div class="pt-sub">专项任务 · 缓冲区溪流</div></div>
+            <span class="p-badge purple">科考</span>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+          <div class="nav-item active"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span></div>
+          <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+          <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+          <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>统计卡：</b>三列统计（里程/时长/事件），数字等宽字体，巡护中实时更新。</li>
+        <li><b>开始巡护大按钮：</b>绿色渐变卡片内嵌白色CTA按钮，高48pt，全宽，视觉突出。</li>
+        <li><b>GPS状态提示：</b>按钮上方提示GPS信号良好，避免用户在信号差时开始。</li>
+        <li><b>待同步提醒：</b>红色同步条醒目提示有未同步记录。</li>
+        <li><b>今日任务：</b>列表展示今日待执行任务，带状态徽章。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>首页所有数据（今日任务、统计、历史）读取本地缓存。"开始巡护"按钮无网可用，点击后轨迹立即开始本地记录。待同步数来自本地同步队列。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①GPS未开启时弹出系统级引导开启定位；②GPS精度>20m时提示"GPS信号弱，请到开阔地再开始"但不阻止；③有未结束的巡护记录（异常退出）时提示"发现上次未完成巡护，是否继续？"；④存储<100MB时红色警告并建议清理。
+  </div>
+</div>
+
+<div class="feature-block" id="page-patrol-track">
+  <h3 class="subsection">轨迹记录页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员开始巡护后此页面为主工作页面。需要常亮显示（防锁屏）、实时显示轨迹和数据，同时提供快捷拍照/上报入口。单手操作，戴手套，可能下雨，电量敏感。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>GPS位置（每10秒1次）、用户操作（暂停/继续/结束/快捷拍照/事件上报）、加速度传感器（判断静止降频）</li>
+      <li><strong>处理：</strong>实时绘制轨迹线、计算里程/速度/时长/海拔、静止时GPS降频到30秒省电、后台持续记录（Kill Protection）</li>
+      <li><strong>输出：</strong>实时轨迹地图、统计数字、操作按钮、锁屏保活、进入后台通知栏常驻</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>巡护中产生的轨迹点本地缓存，结束巡护后打包同步到PC端"巡护记录"模块，PC端可实时查看（有网时）或同步后查看轨迹回放和统计。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status" style="background:#000;color:#fff">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="offline-dot"></span><span class="st-icon">🔋</span></span></div>
+        <div class="p-banner-offline">📡 离线记录中 · GPS正常 · 已记录5.8km</div>
+        <div style="flex:1;background:linear-gradient(135deg,#a7f3d0,#34d399);position:relative;display:flex;align-items:center;justify-content:center">
+          <span style="color:#064e3b;font-size:13px;position:relative;z-index:2">🗺️ 实时轨迹地图</span>
+          <div style="position:absolute;left:20%;bottom:40%;width:60%;height:3px;background:var(--primary);border-radius:2px;box-shadow:0 0 8px rgba(45,125,70,.5)"></div>
+          <div style="position:absolute;right:25%;bottom:40%;width:16px;height:16px;border-radius:50%;background:var(--info);border:3px solid #fff;box-shadow:0 0 0 8px rgba(37,99,235,.3)"></div>
+          <div style="position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:8px">
+            <div style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.15)">📍</div>
+            <div style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.95);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.15)">🗂️</div>
+          </div>
+          <div style="position:absolute;left:10px;top:10px;right:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+            <div style="background:rgba(0,0,0,.6);color:#fff;padding:6px;border-radius:6px;text-align:center">
+              <div class="mono" style="font-size:18px;font-weight:700">5.82</div><div style="font-size:9px;opacity:.8">里程 km</div>
+            </div>
+            <div style="background:rgba(0,0,0,.6);color:#fff;padding:6px;border-radius:6px;text-align:center">
+              <div class="mono" style="font-size:18px;font-weight:700">01:23</div><div style="font-size:9px;opacity:.8">时长</div>
+            </div>
+            <div style="background:rgba(0,0,0,.6);color:#fff;padding:6px;border-radius:6px;text-align:center">
+              <div class="mono" style="font-size:18px;font-weight:700">4.2</div><div style="font-size:9px;opacity:.8">km/h</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:#fff;padding:12px 14px 8px;border-top:1px solid var(--border);flex-shrink:0">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
+            <div style="text-align:center;padding:8px 0">
+              <div style="width:44px;height:44px;border-radius:50%;background:#fef2f2;color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 4px;box-shadow:0 2px 8px rgba(220,38,38,.2)">🚨</div>
+              <div style="font-size:10px;color:var(--text-secondary)">紧急</div>
+            </div>
+            <div style="text-align:center;padding:8px 0">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 4px;box-shadow:0 2px 8px rgba(45,125,70,.2)">📷</div>
+              <div style="font-size:10px;color:var(--text-secondary)">拍照</div>
+            </div>
+            <div style="text-align:center;padding:8px 0">
+              <div style="width:44px;height:44px;border-radius:50%;background:#fff3e0;color:var(--warning);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 4px;box-shadow:0 2px 8px rgba(217,119,6,.2)">⚠️</div>
+              <div style="font-size:10px;color:var(--text-secondary)">事件</div>
+            </div>
+            <div style="text-align:center;padding:8px 0">
+              <div style="width:44px;height:44px;border-radius:50%;background:#f5f3ff;color:var(--offline-purple);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 4px;box-shadow:0 2px 8px rgba(124,58,237,.2)">⏸</div>
+              <div style="font-size:10px;color:var(--text-secondary)">暂停</div>
+            </div>
+          </div>
+          <button class="p-btn danger" style="height:44px;font-size:14px">■ 结束巡护</button>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>全屏轨迹地图：</b>占据主要屏幕区域，青绿底，实时轨迹线绿色带发光效果，当前位置蓝色脉冲点。</li>
+        <li><b>顶部悬浮统计：</b>半透明黑底白字显示里程/时长/速度（等宽数字），强光下可读。</li>
+        <li><b>离线横幅：</b>紫色显示"离线记录中"+GPS状态+已记录里程。</li>
+        <li><b>4个快捷圆形按钮：</b>紧急(红)/拍照(绿)/事件(橙)/暂停(紫)，44pt大按钮，手套可点。</li>
+        <li><b>结束巡护：</b>底部红色全宽按钮44pt，避免误触（需二次确认）。</li>
+        <li><b>保活机制：</b>屏幕常亮（可设置）、后台记录、通知栏常驻显示状态。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>轨迹记录完全离线工作。GPS每10秒采样（静止降频30秒），点数据写入本地SQLite（WAL模式保证写入原子性）。内存中保留最近1000个点绘制轨迹，超过则渲染为抽稀后的折线。本地存储满时按时间淘汰最早的已同步历史轨迹（非当前巡护）。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①GPS信号丢失时保留最后已知位置，提示"GPS信号丢失"，轨迹用虚线连接；②电量低于20%弹提示"是否启用省电模式（降低采样率到30秒）"；③APP异常退出（崩溃/被杀）后重启自动检测未完成巡护并提示恢复；④误入后台时通知栏常驻（Android前台服务/iOS后台位置）。
+  </div>
+</div>
+
+<div class="feature-block" id="page-patrol-event">
+  <h3 class="subsection">异常事件上报页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员在巡护中发现异常（非法捕鱼、排污、地质灾害等），需要快速选择类型、拍照取证、填写描述并上报。暴雨/戴手套/紧急场景下操作，流程要极简，核心操作3步内完成。紧急情况一键上报。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>事件类型选择、照片/视频（自动水印）、位置（自动GPS）、描述文字、紧急标记、语音输入</li>
+      <li><strong>处理：</strong>自动附加GPS/时间/巡护员信息、生成本地事件记录、根据紧急级别标记优先级、紧急事件尝试通过SMS兜底发送</li>
+      <li><strong>输出：</strong>事件进入同步队列（紧急优先）、有网实时推送到PC端告警中心、返回轨迹页继续巡护</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>事件上报后实时推送到PC端"告警中心"（红色弹窗+声音提醒），PC端值班员可派单给执法队、查看实时位置、与巡护员通讯。事件最终进入PC端"事件管理"数据库归档。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status" style="background:#000;color:#fff">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="offline-dot"></span><span class="st-icon">🔋</span></span></div>
+        <div class="phone-header dark"><span class="back">‹</span><span class="title">异常事件上报</span></div>
+        <div class="phone-body">
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;font-size:12px;color:#991b1b">
+            <span style="width:28px;height:28px;border-radius:50%;background:var(--danger);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🚨</span>
+            <label style="display:flex;align-items:center;gap:6px;flex:1"><input type="checkbox" checked style="width:18px;height:18px"> <strong>紧急上报</strong>（立即推送指挥中心）</label>
+          </div>
+
+          <h4 class="sub-sub" style="font-size:13px;margin:8px 4px">事件类型 <span style="color:var(--danger)">*</span></h4>
+          <div class="p-grid3" style="grid-template-columns:repeat(3,1fr)">
+            <div class="grid-item" style="border-color:var(--danger);background:#fef2f2"><span class="gi-icon">🎣</span><span class="gi-lbl" style="color:var(--danger);font-weight:600">非法捕鱼</span></div>
+            <div class="grid-item"><span class="gi-icon">🏗️</span><span class="gi-lbl">非法采砂</span></div>
+            <div class="grid-item"><span class="gi-icon">💧</span><span class="gi-lbl">排污</span></div>
+            <div class="grid-item"><span class="gi-icon">🪨</span><span class="gi-lbl">地质灾害</span></div>
+            <div class="grid-item"><span class="gi-icon">🐟</span><span class="gi-lbl">伤病动物</span></div>
+            <div class="grid-item"><span class="gi-icon">🚣</span><span class="gi-lbl">非法进入</span></div>
+            <div class="grid-item"><span class="gi-icon">🌲</span><span class="gi-lbl">盗伐</span></div>
+            <div class="grid-item"><span class="gi-icon">🔥</span><span class="gi-lbl">火情</span></div>
+            <div class="grid-item"><span class="gi-icon">⋯</span><span class="gi-lbl">其他</span></div>
+          </div>
+
+          <h4 class="sub-sub" style="font-size:13px;margin:12px 4px 8px">现场拍照/视频 <span style="color:var(--text-secondary);font-weight:400;font-size:11px">（已拍2张）</span></h4>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+            <div style="aspect-ratio:1;border-radius:8px;background:#1a1a1a;position:relative;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.5);font-size:10px">📷<div style="position:absolute;bottom:2px;right:4px;font-size:8px;color:#4ade80">✓</div></div>
+            <div style="aspect-ratio:1;border-radius:8px;background:#1a1a1a;position:relative;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.5);font-size:10px">📷<div style="position:absolute;bottom:2px;right:4px;font-size:8px;color:#4ade80">✓</div></div>
+            <div style="aspect-ratio:1;border-radius:8px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--text-placeholder)">+</div>
+          </div>
+
+          <h4 class="sub-sub" style="font-size:13px;margin:8px 4px">位置信息（自动获取）</h4>
+          <div class="p-card" style="padding:10px 14px">
+            <div style="font-size:11px;color:var(--text-secondary)">📍 诺水河核心区 · N32°28′15″ E107°15′42″</div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">海拔 523m · 精度 ±5m · 2026-06-30 09:41</div>
+          </div>
+
+          <h4 class="sub-sub" style="font-size:13px;margin:12px 4px 8px">事件描述</h4>
+          <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;color:var(--text-placeholder);min-height:80px">
+            3人在河道电鱼，已捕获约5斤鱼，见人即逃向山林...
+            <div style="text-align:right;margin-top:20px;font-size:18px">🎤</div>
+          </div>
+        </div>
+        <div style="background:#fff;padding:10px 14px 18px;border-top:1px solid var(--border);flex-shrink:0">
+          <button class="p-btn danger" style="height:48px;font-size:16px">🚨 紧急提交上报</button>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>紧急开关：</b>顶部红色提示条，默认开启（根据快捷入口判断），醒目且可切换。</li>
+        <li><b>类型九宫格：</b>3×3图标+文字选择，点击即选中（红框高亮），不用进二级页。</li>
+        <li><b>拍照区：</b>缩略图+添加按钮，点击直接打开水印相机。</li>
+        <li><b>位置卡：</b>GPS自动填入（等宽字体），不可编辑（保证真实性），仅支持在地图上微调。</li>
+        <li><b>描述框：</b>多行文本+语音输入按钮（🎤），戴手套/雨天可语音转文字。</li>
+        <li><b>提交按钮：</b>红色紧急按钮全宽48pt高，视觉最突出。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>无网时事件完整保存在本地（含照片原图/缩略图），标记为"待同步"。紧急事件在有2G/3G弱网时尝试发送关键信息文本（通过数据通道，失败则尝试SMS兜底需运营商支持）。照片/视频等大文件等WiFi/4G稳定时上传。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①GPS未定位时显示"正在获取位置..."并允许先拍照后绑定位置；②位置精度>50m时提示"GPS精度较低，位置可能不准"；③未选择类型/未拍照时提交按钮弹提示但不阻止（紧急情况可跳过非必填）；④提交后立即返回轨迹页不打断巡护。
+  </div>
+</div>
+
+<div class="feature-block" id="page-patrol-media">
+  <h3 class="subsection">多媒体取证页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>科考场景下需要拍摄大量照片/视频/录音记录物种和生境，全部要求带水印证据链。操作要快速，支持连拍、快速切换模式。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>拍照/录制视频/录制音频、切换前后摄像头、闪光灯控制、选择关联类型（事件/物种/航点）</li>
+      <li><strong>处理：</strong>实时叠加水印层（GPS/时间/方位/巡护员）、照片HEIC/视频H.265压缩、自动生成缩略图、写入本地媒体库</li>
+      <li><strong>输出：</strong>带水印的媒体文件、本地数据库记录、进入同步队列</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>媒体文件按巡护记录/事件归档到PC端"证据库"，支持PC端按时间/位置/巡护员/事件类型检索查看。水印信息不可篡改（可通过PC端验证）。
+  </div>
+  <div class="notice">
+    <strong>功能入口：</strong>从轨迹记录页快捷按钮进入、从事件上报页进入、从任务打卡页进入。模式切换：照片(默认)/视频/录音/热成像（外接）。深色UI保护夜视能力。
+  </div>
+  <div class="offline-tag">
+    <strong>离线策略：</strong>完全离线可用（相机/麦克风不依赖网络）。文件存储在APP沙盒，数据库记录元信息，联网后自动上传。视频自动压缩为720p/2Mbps（可在设置中调整为1080p）。录音使用AAC格式节省空间。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①存储不足时弹红色警告，建议清理后再拍；②拍摄中途来电/切后台自动保存已拍摄内容；③视频录制超过5分钟提示分段（避免单个大文件上传失败）；④温度过高时提示"设备过热，建议暂停拍摄"。
+  </div>
+</div>
+
+<div class="feature-block" id="page-patrol-cache">
+  <h3 class="subsection">记录缓存列表页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员回到管理站连接WiFi后，查看待同步记录的同步进度，手动重试失败的记录，或在巡护中途检查本地缓存状态。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>查看列表、手动触发同步、单条重试、单条删除、查看详情</li>
+      <li><strong>处理：</strong>查询本地同步队列（按状态分类：待同步/同步中/已同步/失败）、显示进度、处理重试/删除</li>
+      <li><strong>输出：</strong>分类列表、实时同步进度、操作反馈</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>同步成功的记录实时出现在PC端相应模块（巡护记录/事件管理/证据库），支持PC端审核打回，打回的记录会重新进入APP队列提示修改。
+  </div>
+  <div class="notice">
+    <strong>列表结构：</strong>三段Tab——待同步（紫色徽章，显示数量）/同步中（蓝色进度条）/已同步（绿色勾选）/失败（红色错误）。列表项含类型图标、标题、时间、位置简述、状态徽章。左滑操作：重试/删除/详情。
+  </div>
+  <div class="offline-tag">
+    <strong>离线策略：</strong>缓存列表完全本地管理。在无网时可查看、删除本地记录；联网后自动开始同步，用户可手动触发/暂停。大文件（视频）在WiFi下自动上传，蜂窝网络下询问用户。
+  </div>
+</div>
+
+
+<!-- ========== Tab3 任务模块 ========== -->
+<h2 class="section" id="s4-3">Tab3 任务模块</h2>
+
+<div class="feature-block" id="page-task-list">
+  <h3 class="subsection">任务列表页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员出发前查看今日待执行任务，了解任务要点和路线。在管理站有网时接收新任务，离线时查看已下载任务。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>Tab切换（待执行/进行中/已完成）、下拉刷新、搜索、筛选</li>
+      <li><strong>处理：</strong>从本地数据库加载任务列表（已缓存），联网时同步新任务/更新状态；计算任务距离当前位置</li>
+      <li><strong>输出：</strong>任务卡片列表、任务状态徽章、距当前距离、点击进入详情</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>任务由PC端"任务管理"模块创建派发，支持指定人员/时间/路线/关键点/附件。APP端任务状态变化（开始/完成/打卡）实时回传PC端。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="online-dot"></span><span class="st-icon">🔋</span></span></div>
+        <div class="phone-header"><span class="back"></span><span class="title">任务</span><span class="right-btn">筛选</span></div>
+        <div class="p-seg" style="margin:10px 12px">
+          <div class="seg-item active">待执行 3</div>
+          <div class="seg-item">进行中 1</div>
+          <div class="seg-item">已完成 12</div>
+        </div>
+        <div class="p-search">🔍 搜索任务名称/编号</div>
+        <div class="phone-body" style="padding-top:0">
+          <div class="p-card" style="border-left:4px solid var(--danger)">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">
+              <div class="pc-title" style="color:var(--danger)">🚨 非法捕鱼线索核查</div>
+              <span class="p-badge red">紧急</span>
+            </div>
+            <div class="pc-sub">编号：T20260630-001 · 缓冲区下游</div>
+            <div class="pc-sub">截止：今日 18:00 · 距你 2.3km</div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <span class="p-tag danger-t">执法</span>
+              <span class="p-tag offline-t">含关键点3个</span>
+            </div>
+          </div>
+          <div class="p-card" style="border-left:4px solid var(--primary)">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">
+              <div class="pc-title">核心区例行巡护</div>
+              <span class="p-badge green">日常</span>
+            </div>
+            <div class="pc-sub">编号：T20260630-002 · A线 约8km</div>
+            <div class="pc-sub">截止：今日 17:00 · 距你 0.5km</div>
+          </div>
+          <div class="p-card" style="border-left:4px solid var(--warning)">
+            <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">
+              <div class="pc-title">大鲵产卵场复查</div>
+              <span class="p-badge orange">科考</span>
+            </div>
+            <div class="pc-sub">编号：T20260630-003 · 缓冲区溪流</div>
+            <div class="pc-sub">截止：7月2日 · 距你 3.8km</div>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+          <div class="nav-item"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span></div>
+          <div class="nav-item active"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+          <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+          <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>三段Tab：</b>待执行/进行中/已完成，带数量徽章。</li>
+        <li><b>搜索栏：</b>支持按名称/编号搜索。</li>
+        <li><b>任务卡片：</b>左侧色条标识紧急度（红/绿/橙），标题、编号、位置、截止时间、距离、标签。</li>
+        <li><b>紧急徽章：</b>右上角红色"紧急"徽章最醒目。</li>
+        <li><b>下拉刷新：</strong>联网时下拉同步新任务。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>任务列表展示已缓存到本地的任务。联网时自动同步新任务（含附件如PDF/图片）。离线时无法接收新任务，但已接收任务可正常查看、执行、打卡。任务详情和附件提前预下载。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①任务过期（超过截止时间未完成）自动标记为"逾期"并橙色提醒；②新任务推送通过通知栏到达，点击直接打开任务详情；③附件下载失败支持断点续传。
+  </div>
+</div>
+
+<div class="feature-block" id="page-task-detail">
+  <h3 class="subsection">任务详情页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员在前往任务地点途中查看任务详情，了解路线、关键点、注意事项。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>查看任务内容、附件、路线预览、点击"开始执行"</li>
+      <li><strong>处理：</strong>展示任务完整信息、路线小地图、关键点列表、附件预览、状态切换</li>
+      <li><strong>输出：</strong>任务详情视图、开始执行→进入打卡页</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>详情内容由PC端编辑，含富文本描述、附件（PDF/图片/DOC）、路线GeoJSON、关键点坐标和要求。执行状态实时同步回PC端。
+  </div>
+  <div class="notice">
+    <strong>页面结构：</strong>顶部任务标题+状态徽章→任务信息卡（编号/类型/派发人/截止时间）→路线小地图（可点击进入全屏地图导航）→关键点列表（名称/坐标/距当前距离/打卡要求）→任务描述（富文本）→附件列表→底部"开始执行"大按钮。
+  </div>
+  <div class="offline-tag">
+    <strong>离线策略：</strong>任务详情和附件在任务列表加载时预下载到本地，离线可完整查看。路线使用GeoJSON本地渲染，不依赖网络瓦片（如已下载对应区域离线包）。
+  </div>
+</div>
+
+<div class="feature-block" id="page-task-checkin">
+  <h3 class="subsection">任务执行打卡页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员到达关键点（如大鲵产卵场），需要在现场打卡签到、拍照上传、填写检查结果。戴手套操作，可能无网，需要记录GPS位置作为打卡凭证。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>签到（GPS定位验证是否在打卡范围内）、关键点打卡、拍照、填写表单、完成提交</li>
+      <li><strong>处理：</strong>自动检测距关键点距离（<50m可打卡）、水印相机拍照、表单数据本地保存、记录时间戳</li>
+      <li><strong>输出：</strong>打卡记录本地缓存，进度更新，全部关键点完成后提交任务</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>打卡数据（时间+GPS+照片+表单）回传PC端，PC端可在"任务追踪"模块实时查看巡护员位置和打卡进度，支持导出打卡报告。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="offline-dot"></span><span class="st-icon">🔋</span></span></div>
+        <div class="p-banner-offline">📡 离线打卡 · 数据联网后自动上传</div>
+        <div class="phone-header" style="border-bottom:none"><span class="back">‹</span><span class="title">任务执行</span></div>
+        <div class="phone-body" style="padding-top:0">
+          <div class="p-card" style="background:linear-gradient(135deg,#2D7D46,#1B5E20);color:#fff;border:none">
+            <div class="pc-title" style="color:#fff">核心区例行巡护</div>
+            <div class="pc-sub" style="color:rgba(255,255,255,.8)">进度：2/5 关键点已打卡</div>
+            <div style="height:6px;background:rgba(255,255,255,.2);border-radius:3px;margin-top:10px;overflow:hidden">
+              <div style="width:40%;height:100%;background:#4ade80;border-radius:3px"></div>
+            </div>
+          </div>
+
+          <h4 class="sub-sub" style="font-size:13px;margin:12px 4px 8px">打卡关键点</h4>
+          <div class="p-list-item" style="border-radius:10px">
+            <div class="p-icon" style="background:#dcfce7;color:var(--primary)">✓</div>
+            <div class="p-text"><div class="pt-title">起点·管理站大门</div><div class="pt-sub">08:15 打卡成功 · N32°29′</div></div>
+            <span class="p-badge green">已完成</span>
+          </div>
+          <div class="p-list-item" style="border-radius:10px">
+            <div class="p-icon" style="background:#dcfce7;color:var(--primary)">✓</div>
+            <div class="p-text"><div class="pt-title">CP1 · 两河口桥</div><div class="pt-sub">09:02 打卡成功 · 拍照2张</div></div>
+            <span class="p-badge green">已完成</span>
+          </div>
+          <div class="p-list-item" style="border-radius:10px;border:2px solid var(--primary);background:#f0fdf4">
+            <div class="p-icon" style="background:var(--primary);color:#fff">📍</div>
+            <div class="p-text"><div class="pt-title" style="color:var(--primary);font-weight:600">CP2 · 大鲵观测点</div><div class="pt-sub" style="color:var(--primary)">距你 15m · 在打卡范围内</div></div>
+            <span class="p-badge blue">待打卡</span>
+          </div>
+          <div class="p-list-item" style="border-radius:10px;opacity:.6">
+            <div class="p-icon">3</div>
+            <div class="p-text"><div class="pt-title">CP3 · 塌方区</div><div class="pt-sub">距你 1.2km</div></div>
+            <span class="p-badge gray">未到达</span>
+          </div>
+          <div class="p-list-item" style="border-radius:10px;opacity:.6">
+            <div class="p-icon">4</div>
+            <div class="p-text"><div class="pt-title">终点·核心区界碑</div><div class="pt-sub">距你 3.5km</div></div>
+            <span class="p-badge gray">未到达</span>
+          </div>
+
+          <button class="p-btn primary" style="margin-top:14px">📍 立即打卡 CP2</button>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+          <div class="nav-item active"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span></div>
+          <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+          <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+          <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>进度卡片：</b>绿色渐变卡显示任务名、进度（X/Y已打卡）、进度条。</li>
+        <li><b>离线横幅：</b>紫色提示离线打卡状态。</li>
+        <li><b>关键点列表：</b>已完成绿色✓、当前待打卡高亮（绿边框+蓝徽章）、未到达灰显。</li>
+        <li><b>距离判断：</b>实时显示距当前关键点距离，<50m显示"在打卡范围内"。</li>
+        <li><b>打卡按钮：</b>进入范围后激活为绿色全宽按钮，点击后打开水印相机+表单。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>打卡完全离线工作。GPS位置本地计算距离，打卡记录（时间+坐标+照片+表单）本地缓存。联网后批量上传，PC端按打卡时间顺序展示。防作弊：打卡时间使用设备时间（联网时校准），位置GPS签名不可篡改。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①距关键点>50m时打卡按钮灰显，提示"距关键点XXm，到达范围内可打卡"，但允许"异常打卡"（需填写原因+拍照）；②GPS精度差时提示"GPS精度较低，建议到开阔地打卡"；③照片上传失败可重试，不阻塞打卡流程。
+  </div>
+</div>
+
+<!-- ========== Tab4 识别模块 ========== -->
+<h2 class="section" id="s4-4">Tab4 识别模块</h2>
+
+<div class="feature-block" id="page-ai-home">
+  <h3 class="subsection">物种识别首页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>科考队员小李在溪流边发现不认识的鱼类/两栖类，掏出手机快速拍照识别，了解物种名称和保护等级。无网时使用本地轻量模型（精度稍低但可用）。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>拍照识别、从相册选择图片</li>
+      <li><strong>处理：</strong>有网优先云端AI识别（高精度，2-3秒返回）；无网自动降级为本地TFLite模型（识别常见TOP200物种，精度约80%，耗时<1秒）</li>
+      <li><strong>输出：</strong>识别结果页（Top3候选+置信度+保护等级+百科介绍）</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>AI模型由PC端后台统一训练下发更新（包括新物种记录）；识别结果（含照片+GPS+确认物种）同步到PC端"物种数据库"，参与保护区生态评估和生物多样性统计。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="online-dot"></span><span class="st-icon">🔋</span></span></div>
+        <div class="phone-header"><span class="back"></span><span class="title">物种识别</span><span class="right-btn">记录</span></div>
+        <div class="phone-body">
+          <div class="p-card" style="background:linear-gradient(135deg,#1B5E8C,#0c4a6e);color:#fff;border:none;padding:24px;text-align:center">
+            <div style="font-size:48px;margin-bottom:8px">🔍</div>
+            <div class="pc-title" style="color:#fff;font-size:18px">AI 物种识别</div>
+            <div class="pc-sub" style="color:rgba(255,255,255,.8);margin-top:4px">拍照识别鱼类·两栖类·爬行类·鸟类·植物</div>
+            <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <button class="p-btn" style="background:#fff;color:var(--secondary);height:44px;font-size:14px">📷 拍照识别</button>
+              <button class="p-btn" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);height:44px;font-size:14px">🖼️ 相册选择</button>
+            </div>
+            <div style="margin-top:10px;font-size:11px;opacity:.7">当前使用云端高精度识别 · 已缓存本地模型 v1.2</div>
+          </div>
+
+          <h4 class="sub-sub" style="font-size:13px;margin:16px 4px 8px">常见物种</h4>
+          <div class="p-grid3">
+            <div class="grid-item"><span class="gi-icon">🐟</span><span class="gi-lbl">大鲵</span></div>
+            <div class="grid-item"><span class="gi-icon">🐠</span><span class="gi-lbl">胭脂鱼</span></div>
+            <div class="grid-item"><span class="gi-icon">🐢</span><span class="gi-lbl">乌龟</span></div>
+            <div class="grid-item"><span class="gi-icon">🦆</span><span class="gi-lbl">鸳鸯</span></div>
+            <div class="grid-item"><span class="gi-icon">🌿</span><span class="gi-lbl">水杉</span></div>
+            <div class="grid-item"><span class="gi-icon">⋯</span><span class="gi-lbl">更多</span></div>
+          </div>
+
+          <h4 class="sub-sub" style="font-size:13px;margin:16px 4px 8px">最近识别</h4>
+          <div class="p-list-item" style="border-radius:10px">
+            <div class="p-icon" style="background:#fef2f2;color:var(--danger)">🐟</div>
+            <div class="p-text"><div class="pt-title">大鲵 <span class="p-badge red" style="margin-left:4px">一级</span></div><div class="pt-sub">置信度 96% · 昨天 15:32</div></div>
+            <span style="color:var(--text-placeholder)">›</span>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+          <div class="nav-item"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span></div>
+          <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+          <div class="nav-item active"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+          <div class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>主操作区：</b>科技蓝渐变卡片，大图标+拍照/相册两个按钮，手套可点。</li>
+        <li><b>识别模式提示：</b>底部显示当前是云端高精度/本地模型，让用户知道精度状态。</li>
+        <li><b>常见物种：</b>3×2网格，快速进入百科。</li>
+        <li><b>最近识别：</b>历史记录快捷入口。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>本地TFLite模型覆盖TOP200常见物种（约30MB），无网时自动切换本地识别，结果标注"本地识别·建议联网复核"。联网后自动用云端复核未确认的本地识别记录。本地模型随APP更新或PC端推送增量更新。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①识别失败（置信度<50%）提示"未能识别，请调整角度重试或手动选择物种"；②图片模糊提示"图片模糊，请重新拍摄"；③本地模型加载失败降级为"拍照保存后联网识别"模式。
+  </div>
+</div>
+
+<div class="feature-block" id="page-ai-result">
+  <h3 class="subsection">识别结果页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>识别完成后巡护员查看结果，确认是否为该物种，了解保护等级和基本介绍，决定是否关联到事件/巡护记录。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>查看识别结果、选择正确物种（Top1/2/3或手动搜索）、确认保存、关联记录</li>
+      <li><strong>处理：</strong>展示Top3候选物种+置信度+保护等级（五色徽章）+百科介绍+分布地图+相似物种对比</li>
+      <li><strong>输出：</strong>确认后的识别记录（含照片+GPS+物种+置信度）保存本地→同步PC端</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>确认后的识别记录同步到PC端"物种档案"，累积形成物种分布数据库，支撑生物多样性评估报告。新发现物种（低置信度+人工标注）推送给专家审核。
+  </div>
+  <div class="notice">
+    <strong>页面结构：</strong>顶部拍摄图片→识别结果主卡片（物种名/拉丁名/保护等级五色徽章/置信度进度条）→Top3候选选择（可切换查看）→物种信息Tab（形态特征/生境/分布/保护现状）→相似物种→底部操作：确认正确/结果不对→关联到事件或巡护记录。
+  </div>
+  <div class="offline-tag">
+    <strong>离线策略：</strong>本地模型识别结果离线即可查看（百科信息显示本地缓存的摘要）。完整百科、相似物种高清图需联网加载，离线灰显。确认操作离线可用，保存本地待同步。
+  </div>
+</div>
+
+<div class="feature-block" id="page-ai-history">
+  <h3 class="subsection">识别记录页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>查看历史识别记录，按时间/物种/保护等级筛选，归档或关联到之前的事件记录。
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>记录归档后进入PC端物种数据库，支持按时间/区域/物种导出统计报告。科考人员可在PC端批量标注和审核。
+  </div>
+  <div class="notice">
+    <strong>列表结构：</strong>按日期分组，每条显示缩略图+物种名+保护等级徽章+识别时间+位置。支持筛选（全部/国家一级/国家二级/待确认）和搜索。点击进入结果详情。左滑归档/删除/关联到事件。
+  </div>
+  <div class="offline-tag">
+    <strong>离线策略：</strong>识别历史本地存储，离线可查看和归档。联网后同步到PC端，接收PC端专家标注反馈（如"经确认为XX种"）。
+  </div>
+</div>
+
+<!-- ========== Tab5 我的模块 ========== -->
+<h2 class="section" id="s4-5">Tab5 我的模块</h2>
+
+<div class="feature-block" id="page-me-home">
+  <h3 class="subsection">个人中心首页</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>巡护员偶尔查看个人巡护统计（里程/天数/事件数）、进入设置、管理离线包、清理缓存等。使用频率低，信息层级清晰。
+  </div>
+  <div class="logic-box">
+    <strong>功能逻辑：</strong>
+    <ul>
+      <li><strong>输入：</strong>查看个人信息和统计、点击菜单项</li>
+      <li><strong>处理：</strong>从本地数据库统计巡护数据（累计里程/天数/事件/物种）</li>
+      <li><strong>输出：</strong>个人信息卡+统计数据+功能菜单列表</li>
+    </ul>
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>个人信息（姓名/工号/部门/联系方式）与PC端账号体系同步；巡护统计数据PC端也有汇总展示（个人/团队排名）。
+  </div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-status">9:41 <span class="st-icons"><span class="st-icon">📶</span><span class="online-dot"></span><span class="st-icon">🔋</span></span></div>
+        <div class="p-profile" style="border-radius:0;margin:0">
+          <div class="avatar">👤</div>
+          <div>
+            <div class="p-name">张建国</div>
+            <div class="p-sub">工号：ZJG001 · 核心区巡护组</div>
+          </div>
+        </div>
+        <div class="phone-body" style="padding-top:12px">
+          <div class="p-stats">
+            <div class="stat"><span class="stat-val">1286</span><span class="stat-lbl">总里程(km)</span></div>
+            <div class="stat"><span class="stat-val">142</span><span class="stat-lbl">巡护天数</span></div>
+            <div class="stat"><span class="stat-val">38</span><span class="stat-lbl">上报事件</span></div>
+          </div>
+
+          <div class="p-list-item"><div class="p-icon">📝</div><div class="p-text"><div class="pt-title">个人信息</div></div><span style="color:var(--text-placeholder)">›</span></div>
+          <div class="p-list-item"><div class="p-icon">🗺️</div><div class="p-text"><div class="pt-title">离线地图管理</div><div class="pt-sub">1.2GB 已下载</div></div><span class="p-badge blue">3更新</span></div>
+          <div class="p-list-item"><div class="p-icon">💾</div><div class="p-text"><div class="pt-title">缓存清理</div><div class="pt-sub">可清理 286MB</div></div><span style="color:var(--text-placeholder)">›</span></div>
+          <div class="p-list-item"><div class="p-icon">☀️</div><div class="p-text"><div class="pt-title">强光模式</div><div class="pt-sub">户外高对比度</div></div>
+            <label style="width:40px;height:22px;background:var(--primary);border-radius:11px;position:relative;display:inline-block"><span style="position:absolute;top:2px;right:2px;width:18px;height:18px;background:#fff;border-radius:50%"></span></label>
+          </div>
+          <div class="p-list-item"><div class="p-icon">🔋</div><div class="p-text"><div class="pt-title">省电模式</div></div>
+            <label style="width:40px;height:22px;background:#cbd5e1;border-radius:11px;position:relative;display:inline-block"><span style="position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%"></span></label>
+          </div>
+          <div class="p-list-item"><div class="p-icon">💬</div><div class="p-text"><div class="pt-title">意见反馈</div></div><span style="color:var(--text-placeholder)">›</span></div>
+          <div class="p-list-item"><div class="p-icon">ℹ️</div><div class="p-text"><div class="pt-title">关于 APP</div><div class="pt-sub">v2.0.1</div></div><span style="color:var(--text-placeholder)">›</span></div>
+          <div class="p-list-item" style="border-radius:10px;margin-top:12px"><div class="p-icon" style="background:#fef2f2;color:var(--danger)">🚪</div><div class="p-text"><div class="pt-title" style="color:var(--danger)">退出登录</div></div></div>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">地图</span></div>
+          <div class="nav-item"><span class="nav-icon">🥾</span><span class="nav-label">巡护</span></div>
+          <div class="nav-item"><span class="nav-icon">📋</span><span class="nav-label">任务</span></div>
+          <div class="nav-item"><span class="nav-icon">🔍</span><span class="nav-label">识别</span></div>
+          <div class="nav-item active"><span class="nav-icon">👤</span><span class="nav-label">我的</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-annotations">
+      <div class="anno-title">关键区域说明</div>
+      <ol>
+        <li><b>个人头部：</b>绿色渐变头像+姓名+工号+部门。</li>
+        <li><b>统计数据：</b>三列累计数据（总里程/巡护天数/上报事件），大号等宽数字。</li>
+        <li><b>功能菜单：</b>标准列表项，带图标+标题+副标题（存储占用/版本等）+箭头。</li>
+        <li><b>开关项：</b>强光模式/省电模式带Switch开关。</li>
+        <li><b>离线包更新徽章：</b>蓝色徽章提示有3个离线包可更新。</li>
+        <li><b>退出登录：</b>红色文字，单独分组，防误触。</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>个人中心所有数据本地存储，离线可查看和修改设置。个人信息修改暂存本地，联网后同步。退出登录需要二次确认，离线状态下退出不清除本地已缓存数据（避免数据丢失）。
+  </div>
+  <div class="warn">
+    <strong>异常处理：</strong>①缓存清理时提示"将清理已同步的缓存文件，不会删除待同步记录"，避免误删数据；②退出登录时如有待同步记录弹红色警告"有X条记录未同步，退出可能导致数据丢失"。
+  </div>
+</div>
+
+<div class="feature-block" id="page-me-extra">
+  <h3 class="subsection">个人信息/密码修改/离线包/缓存/反馈/设置/关于</h3>
+  <div class="field-scene">
+    <strong>野外场景：</strong>这些页面多在管理站休息时操作，非高频，但设置项（强光/省电模式）会在野外频繁切换。
+  </div>
+  <div class="pc-relation">
+    <strong>与PC端关联：</strong>密码修改同步PC端账号体系；意见反馈提交到PC端工单系统；版本更新检测PC端后台最新版本；离线包更新由PC端发布。
+  </div>
+
+  <h4 class="sub-sub">个人信息页</h4>
+  <p>头像（本地拍照/相册）、姓名（只读，从账号同步）、工号（只读）、部门（只读）、手机号（可修改）、岗位（可修改）。表单式布局，底部"保存"按钮。</p>
+
+  <h4 class="sub-sub">修改密码页</h4>
+  <p>旧密码+新密码+确认新密码，三个密码输入框，密码强度指示器，底部"确认修改"按钮。需联网校验旧密码。</p>
+
+  <h4 class="sub-sub">离线包管理</h4>
+  <p>与地图模块"离线地图包管理"入口相同（复用页面），统一管理所有离线资源（地图包/物种百科/本地AI模型/语音包）。</p>
+
+  <h4 class="sub-sub">缓存清理</h4>
+  <p>分类展示缓存：地图缓存（瓦片临时文件）、照片缓存（已同步的缩略图）、其他（日志/临时文件），显示各分类占用大小。支持"一键清理安全缓存"（只清理已同步/可重新生成的文件），不清理待同步记录和已下载离线包。</p>
+
+  <h4 class="sub-sub">意见反馈</h4>
+  <p>类型选择（Bug/建议/物种纠错/其他）、问题描述多行输入、截图上传（最多3张）、联系方式（手机号/工号）、提交按钮。支持离线暂存反馈。</p>
+
+  <h4 class="sub-sub">设置页</h4>
+  <p>包含：强光模式开关、省电模式开关、自动亮度、GPS精度（高/中/省电）、通知开关、消息提示音、生物识别登录开关、摇一摇反馈开关、巡护自动暂停（静止X分钟）、水印信息自定义（显示方位/海拔/巡护员）、清除缓存入口、检查更新。</p>
+
+  <h4 class="sub-sub">关于页</h4>
+  <p>APP图标+版本号、检查更新按钮、用户协议、隐私政策、开源许可、官方联系方式、技术支持热线。</p>
+
+  <div class="offline-tag">
+    <strong>离线策略：</strong>所有设置项本地存储即时生效。密码修改需联网；检查更新需联网（自动检测不阻塞）；用户协议/隐私政策首次联网加载后缓存本地。
+  </div>
+</div>
+
+
+<!-- ========== 第5章 ========== -->
+<h1 class="chapter" id="ch5">第5章 关键用户流程设计</h1>
+<p>本章展示4个核心业务闭环流程，每个流程以Mermaid图+关键步骤说明呈现，突出离线分支处理和APP↔PC数据闭环。</p>
+
+<h2 class="section" id="s5-1">5.1 日常巡护闭环</h2>
+<p>完整的日常巡护业务流程：从接收任务到数据归档，覆盖离线巡护和数据同步全链路。</p>
+
+<div class="step-flow">
+  <div class="step">接收任务</div><div class="arrow">→</div>
+  <div class="step online">下载离线包</div><div class="arrow">→</div>
+  <div class="step">开始巡护</div><div class="arrow">→</div>
+  <div class="step offline">轨迹记录</div><div class="arrow">→</div>
+  <div class="step offline">事件上报</div><div class="arrow">→</div>
+  <div class="step">结束巡护</div><div class="arrow">→</div>
+  <div class="step online">数据同步</div><div class="arrow">→</div>
+  <div class="step" style="border-color:var(--secondary);color:var(--secondary);background:#eff6ff">PC端审核</div>
+</div>
+
+<div class="mermaid-wrap">
+<div class="mermaid">
+sequenceDiagram
+    participant PC as PC端管理平台
+    participant Server as 服务器
+    participant APP as 巡护APP
+    participant User as 巡护员
+
+    Note over User,APP: === 管理站（有网） ===
+    PC->>Server: 派发巡护任务
+    Server-->>APP: 推送新任务通知
+    User->>APP: 打开APP查看任务
+    APP->>Server: 请求任务详情+离线地图包
+    Server-->>APP: 返回任务+离线包(断点下载)
+    APP->>APP: 本地存储任务+离线包
+
+    Note over User,APP: === 进入核心区（无网·离线模式） ===
+    User->>APP: 点击"开始巡护"
+    APP->>APP: 启动GPS定位·紫色横幅提示离线
+    APP->>APP: 每10秒记录GPS点→本地SQLite
+    User->>APP: 发现异常→拍照(水印)+类型+描述
+    APP->>APP: 事件入本地同步队列(优先级标记)
+    APP->>APP: 继续轨迹记录...
+
+    Note over User,APP: === 返回管理站（WiFi恢复） ===
+    APP->>APP: 检测到WiFi·横幅变蓝色"同步中"
+    APP->>Server: 增量同步轨迹点(批量)
+    APP->>Server: 上传事件记录+照片(分片)
+    Server-->>PC: 推送新巡护记录+事件告警
+    PC->>PC: 值班员审核轨迹/事件
+    PC-->>Server: 审核通过/打回修改
+    Server-->>APP: 推送审核结果
+    APP->>APP: 本地标记"已审核"·横幅变绿消失
+</div>
+</div>
+
+<h3 class="subsection">关键步骤说明（含离线分支）</h3>
+<table>
+  <thead><tr><th style="width:5%">#</th><th style="width:14%">步骤</th><th>说明</th><th style="width:18%">离线分支处理</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>接收任务</td><td>PC端派发任务后服务器推送通知，APP在联网时接收，任务进入本地待执行列表。</td><td>—（此步需联网）</td></tr>
+    <tr><td>2</td><td>下载离线包</td><td>根据任务区域自动提示下载对应离线地图包，WiFi下自动下载，蜂窝网络需确认。</td><td>如已提前下载则跳过；未下载也可巡护，但地图显示灰色马赛克。</td></tr>
+    <tr><td>3</td><td>开始巡护</td><td>点击"开始巡护"大按钮，APP启动GPS前台服务，屏幕常亮，进入轨迹记录页。</td><td>无网不阻止，紫色横幅提示离线，GPS正常工作。</td></tr>
+    <tr><td>4</td><td>轨迹记录</td><td>每10秒采样GPS点，绘制轨迹线，实时计算里程/速度/时长，静止降频省电。</td><td>数据全部本地SQLite持久化，APP被杀也可恢复。</td></tr>
+    <tr><td>5</td><td>事件上报（可选）</td><td>发现异常时快捷进入上报页，类型+拍照(水印)+描述，紧急事件标记红色。</td><td>无网本地缓存；紧急事件在2G下尝试发关键信息文本。</td></tr>
+    <tr><td>6</td><td>结束巡护</td><td>点击红色"结束巡护"→二次确认→生成巡护总结（里程/时长/事件/照片统计）。</td><td>本地生成总结，未同步数提示。</td></tr>
+    <tr><td>7</td><td>数据同步</td><td>回到WiFi区自动触发同步，按优先级：紧急事件→普通事件→轨迹→照片→视频。断点续传。</td><td>同步中可离开继续使用APP，后台同步；失败指数退避重试。</td></tr>
+    <tr><td>8</td><td>PC端审核</td><td>数据到达服务器后实时推送到PC端告警中心/巡护记录模块，值班员审核。</td><td>审核打回的记录APP端收到通知，提示修改重新提交。</td></tr>
+  </tbody>
+</table>
+
+<h2 class="section" id="s5-2">5.2 异常事件上报闭环</h2>
+<p>从发现异常到处置完成的完整闭环，重点体现紧急上报和PC端派单处置的双向通信。</p>
+
+<div class="step-flow">
+  <div class="step danger-step">发现异常</div><div class="arrow">→</div>
+  <div class="step danger-step">现场取证(水印)</div><div class="arrow">→</div>
+  <div class="step danger-step">紧急上报</div><div class="arrow">→</div>
+  <div class="step" style="border-color:var(--secondary);color:var(--secondary);background:#eff6ff">PC端告警</div><div class="arrow">→</div>
+  <div class="step" style="border-color:var(--secondary);color:var(--secondary);background:#eff6ff">派单处置</div><div class="arrow">→</div>
+  <div class="step online">结果反馈</div><div class="arrow">→</div>
+  <div class="step">APP查看</div>
+</div>
+
+<div class="mermaid-wrap">
+<div class="mermaid">
+flowchart TB
+    A[巡护员发现异常] --> B{网络状态?}
+    B -->|有网4G/WiFi| C[实时上报服务器]
+    B -->|2G弱网| D[上报关键文本+缩略图]
+    B -->|无网| E[本地队列缓存·标记紧急]
+    E --> F{回到有网区?}
+    F -->|是| C
+    D --> G[服务器接收]
+    C --> G
+    G --> H[PC端告警中心<br/>红色弹窗+声音]
+    H --> I[值班员研判]
+    I --> J{事件等级?}
+    J -->|紧急| K[立即派单给执法队]
+    J -->|一般| L[记录归档·转任务]
+    K --> M[执法队前往处置]
+    M --> N[处置结果回传PC端]
+    N --> O[APP收到处置反馈推送]
+    O --> P[巡护员查看结果·补充材料]
+    L --> Q[APP收到确认通知]
+
+    style A fill:#fef2f2,stroke:#dc2626,stroke-width:2px
+    style E fill:#f5f3ff,stroke:#7c3aed,stroke-width:2px
+    style H fill:#fef2f2,stroke:#dc2626,stroke-width:2px
+    style K fill:#fffbeb,stroke:#d97706,stroke-width:2px
+</div>
+</div>
+
+<h3 class="subsection">关键步骤说明</h3>
+<ul>
+  <li><strong>多网络通道降级：</strong>有网→实时全量上报；2G弱网→仅传文本+缩略图（<50KB），原图/视频后补；无网→本地SQLite缓存，紧急事件最高优先级。</li>
+  <li><strong>SMS兜底通道：</strong>紧急事件在数据网络完全失败时，如设备有信号可尝试通过SMS发送关键信息（类型+经纬度+时间）到指定指挥中心号码。</li>
+  <li><strong>PC端告警：</strong>事件到达服务器后立即在PC端"告警中心"红色弹窗+声音提醒（类似110接警），值班员可实时查看上报人位置、事件类型、现场照片。</li>
+  <li><strong>派单处置：</strong>值班员可在地图上圈选最近的执法队员/巡护员，派发处置任务，APP端收到强通知（铃声+震动）。</li>
+  <li><strong>双向通信：</strong>处置过程中巡护员可继续上传视频/照片，值班员可发送指令消息，APP语音播报。</li>
+  <li><strong>结果反馈：</strong>处置完成后PC端录入处置结果（查获/驱离/移交等），APP端可查看完整处置报告，事件归档。</li>
+</ul>
+
+<h2 class="section" id="s5-3">5.3 离线工作闭环</h2>
+<p>离线模式是巡护APP的核心能力，此流程展示从进入无网区到恢复同步的完整离线生命周期。</p>
+
+<div class="mermaid-wrap">
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> 在线模式: APP启动/有网
+    在线模式 --> 检测无网: 网络切换
+    在线模式 --> 在线模式: 实时同步数据
+    检测无网 --> 离线模式: 显示紫色横幅·切换离线策略
+    离线模式 --> 本地操作: 轨迹记录/拍照/事件/打卡/识别
+    本地操作 --> 数据入队: SQLite本地持久化
+    数据入队 --> 本地操作: 继续操作
+    本地操作 --> 检测网络恢复: 网络变化监听
+    检测网络恢复 --> 网络质量判断: WiFi/4G/3G/2G
+    网络质量判断 --> WiFi同步: WiFi→全量同步含视频
+    网络质量判断 --> 4G同步: 4G→文本+图片·视频需确认
+    网络质量判断 --> 弱网同步: 3G/2G→仅关键文本
+    WiFi同步 --> 批量上传: 按优先级队列
+    4G同步 --> 批量上传
+    弱网同步 --> 关键信息上传
+    批量上传 --> 冲突检测: 服务器版本对比
+    关键信息上传 --> 后续补传
+    后续补传 --> 批量上传: 网络改善时
+    冲突检测 --> 自动合并: 最后写入胜出
+    冲突检测 --> 人工处理: 冲突日志→PC端审核
+    自动合并 --> 同步完成: 绿色横幅·2秒后消失
+    人工处理 --> 同步完成
+    同步完成 --> 在线模式
+</div>
+</div>
+
+<h3 class="subsection">关键步骤说明</h3>
+<table>
+  <thead><tr><th>阶段</th><th>行为</th><th>用户感知</th></tr></thead>
+  <tbody>
+    <tr><td>进入无网</td><td>网络监听器1秒内检测到断网，顶部横幅变紫色显示"离线模式"+待同步数。GPS/相机/存储等本地功能正常工作。</td><td>紫色横幅明确告知，无阻断性弹窗，不打断当前操作。</td></tr>
+    <tr><td>离线操作</td><td>所有核心功能本地执行：GPS采样→SQLite；拍照→沙盒+元数据；事件→本地队列（优先级）；打卡→本地记录；AI识别→本地TFLite模型。</td><td>操作无延迟感（本地操作反而更快），所有提交显示"已保存·待同步"。</td></tr>
+    <tr><td>数据持久化</td><td>采用WAL模式SQLite保证写入原子性；照片/视频写入APP沙盒Documents目录；关键数据写入时同步写入iCloud/Google Drive备份（可选）。</td><td>APP崩溃/手机重启后数据不丢失，重启自动恢复状态。</td></tr>
+    <tr><td>检测恢复</td><td>网络监听器检测到网络恢复，心跳包确认真实可达性（防假信号），判断网络质量等级。</td><td>横幅从紫色变蓝色"正在连接..."→"正在同步 X/Y"。</td></tr>
+    <tr><td>批量同步</td><td>按优先级（紧急事件→普通事件→打卡→轨迹→照片→视频）批量上传，支持断点续传、分片上传、并发控制（最多3并发）。</td><td>进度条实时更新，可查看具体哪个文件在传；可暂停/继续。</td></tr>
+    <tr><td>冲突处理</td><td>服务器对比版本号：同一记录无冲突直接合并；冲突时（如PC端修改了同一条记录）保留两个版本，PC端审核时人工选择。</td><td>冲突记录在"记录缓存列表"显示橙色"需处理"徽章。</td></tr>
+    <tr><td>同步完成</td><td>所有队列清空后横幅变绿色显示"同步完成 · X条记录已上传"，2秒后横幅消失。</td><td>明确反馈，用户可放心数据已达PC端。</td></tr>
+  </tbody>
+</table>
+
+<div class="offline-tag">
+  <strong>离线数据安全保障：</strong>①本地数据库SQLCipher加密；②照片/视频存APP私有沙盒；③删除APP前提示"有待同步记录X条"；④存储<50MB时弹红色警告并暂停非紧急拍照/视频录制；⑤关键操作（结束巡护/提交事件）写双份日志（SQLite+文件）防数据库损坏。
+</div>
+
+<h2 class="section" id="s5-4">5.4 物种识别记录闭环</h2>
+<p>AI物种识别从发现物种到归入生态档案的完整链路，融合本地/云端AI、专家复核和PC端数据沉淀。</p>
+
+<div class="step-flow">
+  <div class="step">发现物种</div><div class="arrow">→</div>
+  <div class="step">拍照</div><div class="arrow">→</div>
+  <div class="step">AI识别</div><div class="arrow">→</div>
+  <div class="step">确认结果</div><div class="arrow">→</div>
+  <div class="step offline">关联GPS</div><div class="arrow">→</div>
+  <div class="step offline">本地保存</div><div class="arrow">→</div>
+  <div class="step online">同步PC端</div><div class="arrow">→</div>
+  <div class="step" style="border-color:var(--secondary);color:var(--secondary);background:#eff6ff">物种档案</div><div class="arrow">→</div>
+  <div class="step" style="border-color:var(--secondary);color:var(--secondary);background:#eff6ff">生态评估</div>
+</div>
+
+<div class="mermaid-wrap">
+<div class="mermaid">
+flowchart LR
+    A[发现物种] --> B[打开APP拍照]
+    B --> C{网络状态?}
+    C -->|有网| D[云端AI识别<br/>高精度·2-3秒]
+    C -->|无网| E[本地TFLite识别<br/>TOP200物种·<1秒]
+    D --> F[Top3候选+置信度]
+    E --> G[Top3候选+<br/>标注"本地识别"]
+    F --> H{巡护员确认?}
+    G --> H
+    H -->|正确| I[确认物种+保护等级]
+    H -->|不对| J[手动选择/重新拍照]
+    J --> H
+    I --> K[自动关联GPS位置+时间<br/>+水印照片]
+    K --> L[本地保存识别记录]
+    L --> M{是否联网?}
+    M -->|是| N[同步到PC端物种库]
+    M -->|否| O[加入同步队列]
+    O -->|联网| N
+    N --> P{置信度/保护等级?}
+    P -->|低置信度/一级保护| Q[专家复核队列]
+    P -->|高置信度/常见种| R[自动归档]
+    Q --> S[PC端专家确认/修正]
+    S --> T[更新物种分布点]
+    R --> T
+    T --> U[参与生物多样性<br/>统计/生态评估报告]
+    S --> V[反馈修正到APP<br/>更新本地模型]
+
+    style E fill:#f5f3ff,stroke:#7c3aed,stroke-width:2px
+    style Q fill:#fffbeb,stroke:#d97706,stroke-width:2px
+    style U fill:#f0fdf4,stroke:#2D7D46,stroke-width:2px
+</div>
+</div>
+
+<h3 class="subsection">关键步骤说明</h3>
+<ul>
+  <li><strong>AI双层识别：</strong>联网时调用云端大模型（精度>95%，支持所有类群）；无网自动降级到本地TFLite轻量模型（覆盖TOP200常见物种，精度约80%，识别时间<1秒）。本地识别结果明确标注"本地识别·建议联网复核"。</li>
+  <li><strong>结果确认：</strong>展示Top3候选物种卡片（照片+名称+保护等级+置信度条），巡护员选择正确的；如均不正确可"重新拍摄"或"手动搜索选择"（从本地物种名录中）。</li>
+  <li><strong>自动附加信息：</strong>确认后自动绑定GPS位置（等宽显示经纬度+海拔）、当前时间、水印照片、巡护员信息，形成完整的物种观测记录。</li>
+  <li><strong>关联事件/巡护：</strong>可将识别结果快速关联到正在进行的巡护记录或事件报告（如在事件上报中识别的物种自动关联到该事件）。</li>
+  <li><strong>专家复核机制：</strong>①国家一级/二级保护动物的记录自动进入专家复核队列；②置信度<70%的记录进入复核队列；③专家在PC端确认或修正后，结果回推APP更新本地记录。</li>
+  <li><strong>数据沉淀：</strong>所有确认记录进入PC端"物种数据库"，累积形成物种分布点图层（可在GIS地图上展示），支撑年度生物多样性评估报告、保护红线调整建议等。</li>
+  <li><strong>模型迭代：</strong>专家确认的新记录（尤其是本地模型误识别的）用于模型再训练，定期通过OTA下发更新的本地模型文件。</li>
+</ul>
+
+<div class="notice">
+  <strong>核心设计理念总结：</strong>v2.0版本以"野外可用·离线优先·单手操作"为核心，围绕巡护员真实野外工作场景构建完整的业务闭环。APP端负责数据采集（野外）、PC端负责数据管理（室内），两端通过同步机制形成有机整体。所有设计决策（大按钮、高对比度、离线缓存、低功耗、水印取证）都可回溯到第0章的野外场景故事验证。
+</div>
+
+</main>
+
+<script src="_shared/js/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:'forest',securityLevel:'loose'});</script>
+</body>
+</html>
