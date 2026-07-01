@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import type { CSSProperties } from 'react';
-import * as echarts from 'echarts';
-import ReactECharts from 'echarts-for-react';
 import {
   Card,
   Row,
@@ -10,29 +8,28 @@ import {
   Switch,
   Slider,
   Select,
-  Tree,
   Tag,
-  Space,
   Checkbox,
   Collapse,
   Divider,
   Modal,
   message,
+  Statistic,
 } from 'antd';
 import {
   GlobalOutlined,
   AppstoreOutlined,
   BarsOutlined,
-  EyeOutlined,
-  EyeInvisibleOutlined,
   FullscreenOutlined,
   ReloadOutlined,
   InfoCircleOutlined,
   EnvironmentOutlined,
   TeamOutlined,
   SafetyOutlined,
-  AlertOutlined,
+  PlusOutlined,
+  MinusOutlined,
 } from '@ant-design/icons';
+import { Scene, ImageLayer, PointLayer, LineLayer, PolygonLayer, GaodeMap } from '@antv/l7';
 import {
   mapLayers,
   facilitiesData,
@@ -43,6 +40,83 @@ import {
 
 const { Panel } = Collapse;
 
+// 诺水河保护区坐标范围
+const CENTER: [number, number] = [107.15, 32.05];
+
+// 模拟地图数据
+const mapData = {
+  // 功能区边界数据（模拟）
+  zones: [
+    {
+      id: 'core',
+      name: '核心区',
+      coordinates: [
+        [[107.05, 32.10], [107.10, 32.15], [107.15, 32.12], [107.12, 32.08], [107.05, 32.10]],
+      ],
+      color: '#ffcdd2',
+      borderColor: '#ef5350',
+    },
+    {
+      id: 'buffer',
+      name: '缓冲区',
+      coordinates: [
+        [[107.10, 32.08], [107.20, 32.12], [107.25, 32.05], [107.18, 32.00], [107.10, 32.08]],
+      ],
+      color: '#fff9c4',
+      borderColor: '#fbc02d',
+    },
+    {
+      id: 'experiment',
+      name: '实验区',
+      coordinates: [
+        [[107.20, 32.00], [107.30, 32.05], [107.35, 31.95], [107.25, 31.90], [107.20, 32.00]],
+      ],
+      color: '#c8e6c9',
+      borderColor: '#66bb6a',
+    },
+  ],
+  // 河流数据（模拟）
+  river: {
+    path: [
+      [107.05, 32.18],
+      [107.10, 32.15],
+      [107.15, 32.12],
+      [107.20, 32.08],
+      [107.25, 32.02],
+      [107.30, 31.95],
+    ],
+  },
+  // 设施点数据
+  facilities: facilitiesData.map(f => ({
+    id: f.id,
+    name: f.name,
+    lng: 107.10 + Math.random() * 0.2,
+    lat: 32.00 + Math.random() * 0.1,
+    type: 'facility',
+  })),
+  // 监测设备
+  monitors: [
+    { id: 'm1', name: '水质站-1', lng: 107.18, lat: 32.08, type: 'water' },
+    { id: 'm2', name: '水质站-2', lng: 107.12, lat: 32.02, type: 'water' },
+    { id: 'm3', name: '气象站', lng: 107.15, lat: 32.05, type: 'weather' },
+  ],
+  // 巡护人员位置
+  patrollers: patrolPersonnel.map(p => ({
+    id: p.id,
+    name: p.name,
+    lng: 107.12 + Math.random() * 0.15,
+    lat: 32.02 + Math.random() * 0.08,
+    type: 'patrol',
+    status: p.status,
+  })),
+  // 物种分布点
+  species: [
+    { id: 's1', name: '大鲵', lng: 107.12, lat: 32.08, count: 48, type: 'species' },
+    { id: 's2', name: '岩原鲤', lng: 107.20, lat: 32.05, count: 156, type: 'species' },
+    { id: 's3', name: '水獭', lng: 107.08, lat: 32.10, count: 12, type: 'species' },
+  ],
+};
+
 interface LayerItem {
   id: string;
   name: string;
@@ -52,213 +126,298 @@ interface LayerItem {
 }
 
 const OverviewMap: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<Scene | null>(null);
+  const layerRef = useRef<Map<string, any>>(new Map());
+  
+  const [mapReady, setMapReady] = useState(false);
   const [layers, setLayers] = useState<LayerItem[]>(mapLayers.map(l => ({ ...l })));
+  const [baseMapType, setBaseMapType] = useState<string>('gaode');
   const [selectedTool, setSelectedTool] = useState<string>('pan');
-  const [measurementMode, setMeasurementMode] = useState<string | null>(null);
   const [legendVisible, setLegendVisible] = useState(true);
   const [infoPanelVisible, setInfoPanelVisible] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState<any>(null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(11);
 
   const baseLayerOptions = [
-    { value: 'tianditu', label: '天地图' },
     { value: 'gaode', label: '高德地图' },
-    { value: 'satellite', label: '卫星影像' },
-    { value: 'none', label: '无底图' },
+    { value: 'gaode_satellite', label: '高德卫星' },
+    { value: 'dark', label: '深色底图' },
   ];
 
-  const handleLayerVisibility = (layerId: string, visible: boolean) => {
-    setLayers(prev =>
-      prev.map(layer =>
-        layer.id === layerId ? { ...layer, visible } : layer
-      )
-    );
+  // 初始化地图
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const scene = new Scene({
+      id: containerRef.current,
+      map: new GaodeMap({
+        center: CENTER,
+        zoom: zoomLevel,
+        style: baseMapType === 'dark' ? 'dark' : 'light',
+      }),
+      logoVisible: false,
+    });
+
+    scene.on('loaded', () => {
+      sceneRef.current = scene;
+      setMapReady(true);
+      
+      // 添加底图
+      addBaseLayer(scene, baseMapType);
+      
+      // 添加功能区图层
+      addZoneLayers(scene);
+      
+      // 添加河流图层
+      addRiverLayer(scene);
+      
+      // 添加设施点
+      addFacilityLayer(scene);
+      
+      // 添加监测点
+      addMonitorLayer(scene);
+      
+      // 添加巡护人员
+      addPatrollerLayer(scene);
+      
+      // 添加物种分布
+      addSpeciesLayer(scene);
+    });
+
+    return () => {
+      if (sceneRef.current) {
+        sceneRef.current.destroy();
+        sceneRef.current = null;
+      }
+    };
+  }, []);
+
+  // 添加底图图层
+  const addBaseLayer = (scene: Scene, type: string) => {
+    let url = '';
+    if (type === 'gaode') {
+      url = 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}';
+    } else if (type === 'gaode_satellite') {
+      url = 'https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}';
+    }
+
+    if (url) {
+      const baseLayer = new ImageLayer({
+        zIndex: 0,
+      }).source(url, {
+        parser: {
+          type: 'rasterTile',
+          tileSize: 256,
+          zoomOffset: 0,
+        },
+      });
+      scene.addLayer(baseLayer);
+      layerRef.current.set('base', baseLayer);
+    }
   };
 
-  const handleLayerOpacity = (layerId: string, opacity: number) => {
-    setLayers(prev =>
-      prev.map(layer =>
-        layer.id === layerId ? { ...layer, opacity: opacity / 100 } : layer
-      )
-    );
+  // 添加功能区图层
+  const addZoneLayers = (scene: Scene) => {
+    mapData.zones.forEach(zone => {
+      const layer = new PolygonLayer({
+        zIndex: 1,
+      }).source({
+        type: 'FeatureCollection',
+        features: [{
+          type: 'Feature',
+          properties: { name: zone.name, color: zone.color },
+          geometry: {
+            type: 'Polygon',
+            coordinates: zone.coordinates,
+          },
+        }],
+      }, {
+        parser: { type: 'geojson' },
+      }).shape('fill').color(zone.color).style({ opacity: 0.6 });
+      
+      scene.addLayer(layer);
+      layerRef.current.set(`zone_${zone.id}`, layer);
+    });
   };
 
-  const handleZoomIn = () => message.info('地图放大');
-  const handleZoomOut = () => message.info('地图缩小');
-  const handleResetView = () => message.info('重置视图');
-  const handleFullscreen = () => setFullscreen(!fullscreen);
+  // 添加河流图层
+  const addRiverLayer = (scene: Scene) => {
+    const riverData = {
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        properties: { name: '诺水河' },
+        geometry: {
+          type: 'LineString',
+          coordinates: mapData.river.path,
+        },
+      }],
+    };
 
-  const handleFeatureClick = (feature: any) => {
-    setSelectedFeature(feature);
-    setInfoPanelVisible(true);
+    const layer = new LineLayer({
+      zIndex: 2,
+    }).source(riverData, {
+      parser: { type: 'geojson' },
+    }).shape('line').size(3).color('#1890ff').style({
+      opacity: 0.8,
+      dashArray: [10, 5],
+    });
+
+    scene.addLayer(layer);
+    layerRef.current.set('river', layer);
   };
 
-  // 模拟地图配置
-  const mapOption = {
-    backgroundColor: '#e6f7ff',
-    tooltip: {
-      trigger: 'item',
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderColor: '#1890ff',
-      textStyle: { color: '#333' },
-    },
-    geo: {
-      map: 'nuoshuhe',
-      roam: true,
-      zoom: 1.2,
-      center: [106.5, 32.2],
-      itemStyle: {
-        areaColor: '#c8e6c9',
-        borderColor: '#2D7D46',
-        borderWidth: 2,
-      },
-      emphasis: {
-        itemStyle: {
-          areaColor: '#a5d6a7',
-          borderColor: '#1B5E8C',
-          borderWidth: 3,
-        },
-      },
-      regions: [
-        {
-          name: '核心区',
-          itemStyle: { areaColor: '#ffcdd2', borderColor: '#ef5350' },
-          label: { show: true, color: '#c62828', fontWeight: 'bold' },
-        },
-        {
-          name: '缓冲区',
-          itemStyle: { areaColor: '#fff9c4', borderColor: '#fbc02d' },
-          label: { show: true, color: '#f57f17', fontWeight: 'bold' },
-        },
-        {
-          name: '实验区',
-          itemStyle: { areaColor: '#c8e6c9', borderColor: '#66bb6a' },
-          label: { show: true, color: '#2e7d32', fontWeight: 'bold' },
-        },
-      ],
-    },
-    series: [
-      // 巡护轨迹
-      {
-        type: 'lines',
-        zlevel: 2,
-        effect: { show: true, period: 6, trailLength: 0.3, symbol: 'circle', symbolSize: 4 },
-        lineStyle: { color: '#1890ff', width: 3, opacity: 0.6, curveness: 0.2 },
-        data: [
-          { coords: [[106.4, 32.25], [106.5, 32.2], [106.55, 32.15]] },
-          { coords: [[106.3, 32.15], [106.45, 32.18], [106.5, 32.22]] },
-        ],
-      },
-      // 巡护人员
-      {
-        type: 'scatter',
-        coordinateSystem: 'geo',
-        zlevel: 3,
-        symbol: 'circle',
-        symbolSize: 14,
-        itemStyle: { color: '#1890ff', borderColor: '#fff', borderWidth: 2 },
-        label: {
-          show: true,
-          position: 'right',
-          formatter: '{b}',
-          fontSize: 10,
-          color: '#333',
-        },
-        data: [
-          { name: '李建国', value: [106.45, 32.22] },
-          { name: '王强', value: [106.38, 32.18] },
-          { name: '孙磊', value: [106.52, 32.16] },
-        ],
-      },
-      // 设施点
-      {
-        type: 'scatter',
-        coordinateSystem: 'geo',
-        zlevel: 4,
-        symbol: 'rect',
-        symbolSize: [12, 12],
-        itemStyle: { color: '#722ed1', borderColor: '#fff', borderWidth: 1 },
-        data: [
-          { name: '空山管护站', value: [106.35, 32.28] },
-          { name: '涪阳管护站', value: [106.42, 32.2] },
-          { name: '诺江管护站', value: [106.55, 32.1] },
-        ],
-      },
-      // 监测设备
-      {
-        type: 'effectScatter',
-        coordinateSystem: 'geo',
-        zlevel: 5,
-        rippleEffect: { brushType: 'stroke', scale: 3 },
-        symbol: 'circle',
-        symbolSize: 10,
-        itemStyle: { color: '#52c41a', shadowBlur: 10, shadowColor: '#52c41a' },
-        data: [
-          { name: '水质站-1', value: [106.48, 32.25] },
-          { name: '水质站-2', value: [106.32, 32.12] },
-          { name: '气象站', value: [106.4, 32.15] },
-        ],
-      },
-      // 物种分布
-      {
-        type: 'scatter',
-        coordinateSystem: 'geo',
-        zlevel: 6,
-        symbol: 'path://M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
-        symbolSize: 16,
-        itemStyle: { color: '#ff4d4f' },
-        label: {
-          show: true,
-          position: 'right',
-          formatter: '{b}',
-          fontSize: 10,
-          color: '#c62828',
-        },
-        data: [
-          { name: '大鲵', value: [106.4, 32.25] },
-          { name: '岩原鲤', value: [106.5, 32.18] },
-        ],
-      },
-    ],
+  // 添加设施点图层
+  const addFacilityLayer = (scene: Scene) => {
+    const layer = new PointLayer({
+      zIndex: 10,
+    }).source(mapData.facilities, {
+      parser: { type: 'json', x: 'lng', y: 'lat' },
+    }).shape('square').size(16).color('#722ed1').style({
+      opacity: 0.9,
+      strokeWidth: 2,
+      stroke: '#fff',
+    });
+
+    scene.addLayer(layer);
+    layerRef.current.set('facilities', layer);
   };
+
+  // 添加监测点图层
+  const addMonitorLayer = (scene: Scene) => {
+    const layer = new PointLayer({
+      zIndex: 11,
+    }).source(mapData.monitors, {
+      parser: { type: 'json', x: 'lng', y: 'lat' },
+    }).shape('circle').size(12).color('#52c41a').style({
+      opacity: 0.9,
+      strokeWidth: 2,
+      stroke: '#fff',
+    });
+
+    scene.addLayer(layer);
+    layerRef.current.set('monitors', layer);
+  };
+
+  // 添加巡护人员图层
+  const addPatrollerLayer = (scene: Scene) => {
+    const layer = new PointLayer({
+      zIndex: 12,
+    }).source(mapData.patrollers, {
+      parser: { type: 'json', x: 'lng', y: 'lat' },
+    }).shape('circle').size(14).color('#1890ff').style({
+      opacity: 0.9,
+      strokeWidth: 2,
+      stroke: '#fff',
+    });
+
+    scene.addLayer(layer);
+    layerRef.current.set('patrollers', layer);
+  };
+
+  // 添加物种分布图层
+  const addSpeciesLayer = (scene: Scene) => {
+    const layer = new PointLayer({
+      zIndex: 13,
+    }).source(mapData.species, {
+      parser: { type: 'json', x: 'lng', y: 'lat' },
+    }).shape('circle').size(18).color('#ff4d4f').style({
+      opacity: 0.8,
+      strokeWidth: 2,
+      stroke: '#c62828',
+    });
+
+    scene.addLayer(layer);
+    layerRef.current.set('species', layer);
+  };
+
+  // 切换底图
+  const handleBaseMapChange = useCallback((type: string) => {
+    setBaseMapType(type);
+    if (sceneRef.current) {
+      const oldBase = layerRef.current.get('base');
+      if (oldBase) {
+        sceneRef.current.removeLayer(oldBase);
+      }
+      addBaseLayer(sceneRef.current, type);
+      if (type === 'dark') {
+        sceneRef.current.setMapStyle('dark');
+      } else {
+        sceneRef.current.setMapStyle('light');
+      }
+    }
+  }, [mapReady]);
+
+  // 图层可见性控制
+  const handleLayerVisibility = useCallback((layerId: string, visible: boolean) => {
+    setLayers(prev => prev.map(l => l.id === layerId ? { ...l, visible } : l));
+    
+    const layer = layerRef.current.get(layerId);
+    if (layer) {
+      if (visible) {
+        layer.show();
+      } else {
+        layer.hide();
+      }
+    }
+  }, []);
+
+  // 图层透明度控制
+  const handleLayerOpacity = useCallback((layerId: string, opacity: number) => {
+    setLayers(prev => prev.map(l => l.id === layerId ? { ...l, opacity: opacity / 100 } : l));
+    
+    const layer = layerRef.current.get(layerId);
+    if (layer) {
+      layer.style({ opacity: opacity / 100 });
+    }
+  }, []);
+
+  // 地图缩放
+  const handleZoomIn = useCallback(() => {
+    if (sceneRef.current) {
+      const newZoom = Math.min(sceneRef.current.getZoom() + 1, 18);
+      sceneRef.current.setZoom(newZoom);
+      setZoomLevel(newZoom);
+    }
+  }, [mapReady]);
+
+  const handleZoomOut = useCallback(() => {
+    if (sceneRef.current) {
+      const newZoom = Math.max(sceneRef.current.getZoom() - 1, 3);
+      sceneRef.current.setZoom(newZoom);
+      setZoomLevel(newZoom);
+    }
+  }, [mapReady]);
+
+  // 重置视图
+  const handleResetView = useCallback(() => {
+    if (sceneRef.current) {
+      sceneRef.current.setCenter(CENTER);
+      sceneRef.current.setZoom(11);
+      setZoomLevel(11);
+      message.success('视图已重置');
+    }
+  }, [mapReady]);
+
+  // 全屏切换
+  const handleFullscreen = useCallback(() => {
+    setFullscreen(!fullscreen);
+  }, [fullscreen]);
 
   // 工具配置
   const tools = [
     { id: 'pan', icon: <GlobalOutlined />, name: '平移' },
     { id: 'select', icon: <AppstoreOutlined />, name: '选择' },
     { id: 'measure', icon: <BarsOutlined />, name: '测量' },
-    { id: 'draw', icon: <AppstoreOutlined />, name: '绘制' },
   ];
 
-  // 图层树形数据
-  const layerTreeData = [
-    {
-      title: '底图',
-      key: 'base',
-      children: [
-        { title: '天地图', key: 'base-tianditu' },
-        { title: '高德地图', key: 'base-gaode' },
-        { title: '卫星影像', key: 'base-satellite' },
-      ],
-    },
-    {
-      title: '规划图层',
-      key: 'planning',
-      children: [
-        { title: '保护区边界', key: 'overlay-boundary' },
-        { title: '功能区划', key: 'overlay-zoning' },
-      ],
-    },
-    {
-      title: '专题图层',
-      key: 'thematic',
-      children: [
-        { title: '物种分布', key: 'overlay-species' },
-        { title: '基础设施', key: 'overlay-facilities' },
-        { title: '巡护人员', key: 'overlay-patrollers' },
-      ],
-    },
-  ];
+  // 处理要素点击
+  const handleFeatureClick = (feature: any) => {
+    setSelectedFeature(feature);
+    setInfoPanelVisible(true);
+  };
 
   const containerStyle: CSSProperties = fullscreen ? {
     position: 'fixed',
@@ -277,6 +436,13 @@ const OverviewMap: React.FC = () => {
           <h1 className="page-title">综合一张图</h1>
         </div>
         <div className="page-header-actions">
+          <Statistic 
+            title="当前缩放" 
+            value={zoomLevel} 
+            suffix="级" 
+            style={{ marginRight: 24 }}
+            valueStyle={{ fontSize: 16 }}
+          />
           <Button icon={<ReloadOutlined />} onClick={handleResetView}>
             重置视图
           </Button>
@@ -304,12 +470,17 @@ const OverviewMap: React.FC = () => {
             style={{ height: '100%' }}
             bodyStyle={{ padding: 0, height: 'calc(100% - 60px)', overflow: 'auto' }}
           >
-            <Collapse defaultActiveKey={['base', 'planning', 'thematic']} ghost>
+            <Collapse defaultActiveKey={['base', 'zones', 'features']} ghost>
               <Panel header="底图设置" key="base">
                 <div style={{ padding: '8px 16px' }}>
                   <div style={{ marginBottom: 12 }}>
                     <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 8 }}>底图选择</label>
-                    <Select defaultValue="tianditu" style={{ width: '100%' }} size="small">
+                    <Select 
+                      value={baseMapType} 
+                      onChange={handleBaseMapChange}
+                      style={{ width: '100%' }} 
+                      size="small"
+                    >
                       {baseLayerOptions.map(opt => (
                         <Select.Option key={opt.value} value={opt.value}>{opt.label}</Select.Option>
                       ))}
@@ -317,10 +488,10 @@ const OverviewMap: React.FC = () => {
                   </div>
                 </div>
               </Panel>
-              <Panel header="规划图层" key="planning">
+              <Panel header="功能区图层" key="zones">
                 <div style={{ padding: '8px 16px' }}>
-                  {layers.filter(l => l.type === 'overlay').map(layer => (
-                    <div key={layer.id} style={{
+                  {mapData.zones.map(zone => (
+                    <div key={zone.id} style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -328,27 +499,33 @@ const OverviewMap: React.FC = () => {
                       borderBottom: '1px solid #f0f0f0',
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Switch
-                          size="small"
-                          checked={layer.visible}
-                          onChange={(checked) => handleLayerVisibility(layer.id, checked)}
-                        />
-                        <span style={{ fontSize: 13 }}>{layer.name}</span>
+                        <div style={{ 
+                          width: 16, 
+                          height: 16, 
+                          background: zone.color, 
+                          border: `1px solid ${zone.borderColor}`,
+                          borderRadius: 2 
+                        }} />
+                        <span style={{ fontSize: 13 }}>{zone.name}</span>
                       </div>
-                      <Slider
-                        min={0}
-                        max={100}
-                        value={layer.opacity * 100}
-                        onChange={(value) => handleLayerOpacity(layer.id, value)}
-                        style={{ width: 80 }}
+                      <Switch
+                        size="small"
+                        defaultChecked
+                        onChange={(checked) => handleLayerVisibility(`zone_${zone.id}`, checked)}
                       />
                     </div>
                   ))}
                 </div>
               </Panel>
-              <Panel header="专题图层" key="thematic">
+              <Panel header="要素图层" key="features">
                 <div style={{ padding: '8px 16px' }}>
-                  {layers.filter(l => l.type === 'vector').map(layer => (
+                  {[
+                    { id: 'river', name: '河流水系', color: '#1890ff' },
+                    { id: 'facilities', name: '基础设施', color: '#722ed1' },
+                    { id: 'monitors', name: '监测站点', color: '#52c41a' },
+                    { id: 'patrollers', name: '巡护人员', color: '#1890ff' },
+                    { id: 'species', name: '物种分布', color: '#ff4d4f' },
+                  ].map(layer => (
                     <div key={layer.id} style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -357,19 +534,19 @@ const OverviewMap: React.FC = () => {
                       borderBottom: '1px solid #f0f0f0',
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Switch
-                          size="small"
-                          checked={layer.visible}
-                          onChange={(checked) => handleLayerVisibility(layer.id, checked)}
-                        />
+                        <div style={{ 
+                          width: 16, 
+                          height: 16, 
+                          background: layer.color, 
+                          borderRadius: layer.id === 'river' ? 0 : '50%',
+                          border: '1px solid #fff',
+                        }} />
                         <span style={{ fontSize: 13 }}>{layer.name}</span>
                       </div>
-                      <Slider
-                        min={0}
-                        max={100}
-                        value={layer.opacity * 100}
-                        onChange={(value) => handleLayerOpacity(layer.id, value)}
-                        style={{ width: 80 }}
+                      <Switch
+                        size="small"
+                        defaultChecked
+                        onChange={(checked) => handleLayerVisibility(layer.id, checked)}
                       />
                     </div>
                   ))}
@@ -411,213 +588,97 @@ const OverviewMap: React.FC = () => {
                 />
               ))}
               <Divider style={{ margin: '8px 0' }} />
-              <Button icon={<GlobalOutlined />} size="small" onClick={handleZoomIn} title="放大" style={{ width: 36, height: 36, padding: 0 }} />
-              <Button icon={<GlobalOutlined />} size="small" onClick={handleZoomOut} title="缩小" style={{ width: 36, height: 36, padding: 0 }} />
+              <Button 
+                icon={<PlusOutlined />} 
+                size="small" 
+                onClick={handleZoomIn} 
+                title="放大" 
+                style={{ width: 36, height: 36, padding: 0 }} 
+              />
+              <Button 
+                icon={<MinusOutlined />} 
+                size="small" 
+                onClick={handleZoomOut} 
+                title="缩小" 
+                style={{ width: 36, height: 36, padding: 0 }} 
+              />
             </div>
 
-            {/* 地图 */}
-            <div style={{
-              height: '100%',
-              background: '#e6f7ff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-            }}>
-              {/* 模拟地图底图 */}
-              <div style={{
-                position: 'absolute',
-                width: '100%',
+            {/* L7 地图容器 */}
+            <div
+              ref={containerRef}
+              style={{
                 height: '100%',
-                background: 'linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 50%, #81c784 100%)',
-                borderRadius: 8,
-              }}>
-                {/* 模拟区域 */}
-                <div style={{
-                  position: 'absolute',
-                  top: '15%',
-                  left: '20%',
-                  width: '25%',
-                  height: '35%',
-                  background: 'rgba(255, 205, 210, 0.6)',
-                  border: '2px solid #ef5350',
-                  borderRadius: 4,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <span style={{ color: '#c62828', fontWeight: 'bold', fontSize: 12 }}>核心区</span>
-                </div>
-                <div style={{
-                  position: 'absolute',
-                  top: '30%',
-                  left: '35%',
-                  width: '30%',
-                  height: '40%',
-                  background: 'rgba(255, 249, 196, 0.6)',
-                  border: '2px solid #fbc02d',
-                  borderRadius: 4,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <span style={{ color: '#f57f17', fontWeight: 'bold', fontSize: 12 }}>缓冲区</span>
-                </div>
-                <div style={{
-                  position: 'absolute',
-                  top: '55%',
-                  left: '50%',
-                  width: '35%',
-                  height: '35%',
-                  background: 'rgba(200, 230, 201, 0.6)',
-                  border: '2px solid #66bb6a',
-                  borderRadius: 4,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <span style={{ color: '#2e7d32', fontWeight: 'bold', fontSize: 12 }}>实验区</span>
-                </div>
-                {/* 模拟河流 */}
-                <svg style={{ position: 'absolute', width: '100%', height: '100%' }}>
-                  <path
-                    d="M 50 80 Q 150 200 300 250 Q 450 300 550 400"
-                    fill="none"
-                    stroke="#1890ff"
-                    strokeWidth="6"
-                    strokeDasharray="10,5"
-                  />
-                </svg>
-                {/* 模拟设施点 */}
-                <div style={{
-                  position: 'absolute',
-                  top: '25%',
-                  left: '30%',
-                  width: 20,
-                  height: 20,
-                  background: '#722ed1',
-                  borderRadius: 4,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                }} title="空山管护站">
-                  <SafetyOutlined style={{ color: '#fff', fontSize: 12 }} />
-                </div>
-                <div style={{
-                  position: 'absolute',
-                  top: '40%',
-                  left: '45%',
-                  width: 20,
-                  height: 20,
-                  background: '#722ed1',
-                  borderRadius: 4,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                }} title="涪阳管护站">
-                  <SafetyOutlined style={{ color: '#fff', fontSize: 12 }} />
-                </div>
-                {/* 模拟监测点 */}
-                <div style={{
-                  position: 'absolute',
-                  top: '30%',
-                  left: '55%',
-                  width: 16,
-                  height: 16,
-                  background: '#52c41a',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 8px #52c41a',
-                  cursor: 'pointer',
-                }} title="水质监测站" />
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '35%',
-                  width: 16,
-                  height: 16,
-                  background: '#52c41a',
-                  borderRadius: '50%',
-                  boxShadow: '0 0 8px #52c41a',
-                  cursor: 'pointer',
-                }} title="气象监测站" />
-                {/* 巡护人员 */}
-                <div style={{
-                  position: 'absolute',
-                  top: '35%',
-                  left: '40%',
-                  width: 24,
-                  height: 24,
-                  background: '#1890ff',
-                  borderRadius: '50%',
-                  border: '2px solid #fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(24, 144, 255, 0.5)',
-                }} title="李建国 - 巡护中">
-                  <TeamOutlined style={{ color: '#fff', fontSize: 12 }} />
-                </div>
-              </div>
+                width: '100%',
+                position: 'relative',
+              }}
+            />
 
-              {/* 坐标显示 */}
+            {/* 坐标显示 */}
+            <div style={{
+              position: 'absolute',
+              bottom: 10,
+              right: 10,
+              background: 'rgba(255, 255, 255, 0.9)',
+              padding: '4px 12px',
+              borderRadius: 4,
+              fontSize: 12,
+              color: '#666',
+              zIndex: 10,
+            }}>
+              中心点: {CENTER[0].toFixed(2)}°E, {CENTER[1].toFixed(2)}°N
+            </div>
+
+            {/* 图例 */}
+            {legendVisible && (
               <div style={{
                 position: 'absolute',
                 bottom: 10,
-                right: 10,
-                background: 'rgba(255, 255, 255, 0.9)',
-                padding: '4px 12px',
-                borderRadius: 4,
+                left: 60,
+                background: 'rgba(255, 255, 255, 0.95)',
+                padding: 12,
+                borderRadius: 8,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 fontSize: 12,
-                color: '#666',
+                zIndex: 10,
               }}>
-                中心点: 106.500°E, 32.200°N | 比例尺: 1:50000
-              </div>
-
-              {/* 图例 */}
-              {legendVisible && (
-                <div style={{
-                  position: 'absolute',
-                  bottom: 10,
-                  left: 10,
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  padding: 12,
-                  borderRadius: 8,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  fontSize: 12,
-                }}>
-                  <div style={{ fontWeight: 600, marginBottom: 8, color: '#333' }}>图例</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 16, height: 16, background: '#ffcdd2', border: '1px solid #ef5350', borderRadius: 2 }} />
-                      <span>核心区</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 16, height: 16, background: '#fff9c4', border: '1px solid #fbc02d', borderRadius: 2 }} />
-                      <span>缓冲区</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 16, height: 16, background: '#c8e6c9', border: '1px solid #66bb6a', borderRadius: 2 }} />
-                      <span>实验区</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 16, height: 16, background: '#722ed1', borderRadius: 2 }} />
-                      <span>管护站</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 16, height: 16, background: '#52c41a', borderRadius: '50%' }} />
-                      <span>监测站</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 16, height: 16, background: '#1890ff', borderRadius: '50%' }} />
-                      <span>巡护人员</span>
-                    </div>
+                <div style={{ fontWeight: 600, marginBottom: 8, color: '#333' }}>图例</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 16, height: 16, background: '#ffcdd2', border: '1px solid #ef5350', borderRadius: 2 }} />
+                    <span>核心区</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 16, height: 16, background: '#fff9c4', border: '1px solid #fbc02d', borderRadius: 2 }} />
+                    <span>缓冲区</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 16, height: 16, background: '#c8e6c9', border: '1px solid #66bb6a', borderRadius: 2 }} />
+                    <span>实验区</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 16, height: 4, background: '#1890ff' }} />
+                    <span>河流</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 16, height: 16, background: '#722ed1', borderRadius: 2 }} />
+                    <span>管护站</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 16, height: 16, background: '#52c41a', borderRadius: '50%' }} />
+                    <span>监测站</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 16, height: 16, background: '#1890ff', borderRadius: '50%' }} />
+                    <span>巡护人员</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 16, height: 16, background: '#ff4d4f', borderRadius: '50%' }} />
+                    <span>物种分布</span>
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </Card>
         </Col>
 
@@ -754,30 +815,12 @@ const OverviewMap: React.FC = () => {
                   <span>{selectedFeature.location}</span>
                 </div>
               )}
-              {selectedFeature.role && (
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <span style={{ color: '#666', width: 80 }}>角色:</span>
-                  <span>{selectedFeature.role}</span>
-                </div>
-              )}
               {selectedFeature.status && (
                 <div style={{ display: 'flex', gap: 12 }}>
                   <span style={{ color: '#666', width: 80 }}>状态:</span>
-                  <Tag color={selectedFeature.status === '巡护中' ? 'success' : selectedFeature.status === 'online' ? 'success' : 'default'}>
+                  <Tag color={selectedFeature.status === '巡护中' ? 'success' : 'default'}>
                     {selectedFeature.status}
                   </Tag>
-                </div>
-              )}
-              {selectedFeature.builtYear && (
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <span style={{ color: '#666', width: 80 }}>建设年份:</span>
-                  <span>{selectedFeature.builtYear}</span>
-                </div>
-              )}
-              {selectedFeature.phone && (
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <span style={{ color: '#666', width: 80 }}>联系电话:</span>
-                  <span>{selectedFeature.phone}</span>
                 </div>
               )}
             </div>
