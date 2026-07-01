@@ -33,7 +33,7 @@ import { speciesList } from '@/mock';
 const { Option } = Select;
 
 // 模拟群落结构数据
-const communityData = [
+const communityData: Community[] = [
   {
     id: 'C1',
     name: '核心区水生群落',

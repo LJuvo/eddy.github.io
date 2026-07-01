@@ -27,9 +27,8 @@ import {
   SaveOutlined,
   ExportOutlined,
   ClearOutlined,
-  MapPinOutlined,
+  EnvironmentOutlined,
   SyncOutlined,
-  InfoCircleOutlined,
 } from '@ant-design/icons';
 import { facilitiesData, administrativeZones, speciesList } from '@/mock';
 
@@ -206,7 +205,7 @@ const BufferAnalysis: React.FC = () => {
       key: 'name',
       render: (name: string) => (
         <Space>
-          <MapPinOutlined style={{ color: '#1890ff' }} />
+          <EnvironmentOutlined style={{ color: '#1890ff' }} />
           <span style={{ fontWeight: 500 }}>{name}</span>
         </Space>
       ),
@@ -446,7 +445,7 @@ const BufferAnalysis: React.FC = () => {
               </Col>
               <Col span={4}>
                 <div style={{ marginBottom: 8, color: '#666', fontSize: 13 }}>搜索地物</div>
-                <Input placeholder="输入地物名称搜索" prefix={<MapPinOutlined />} />
+                <Input placeholder="输入地物名称搜索" prefix={<EnvironmentOutlined />} />
               </Col>
               <Col span={6}>
                 <div style={{ marginBottom: 8, color: '#666', fontSize: 13 }}>缓冲半径设置</div>
@@ -624,7 +623,7 @@ const BufferAnalysis: React.FC = () => {
             <Descriptions column={2} bordered size="small" style={{ marginTop: 16 }}>
               <Descriptions.Item label="分析地物" span={2}>
                 <Space>
-                  <MapPinOutlined style={{ color: '#1890ff' }} />
+                  <EnvironmentOutlined style={{ color: '#1890ff' }} />
                   <span style={{ fontWeight: 600 }}>{selectedResult.featureName}</span>
                 </Space>
               </Descriptions.Item>

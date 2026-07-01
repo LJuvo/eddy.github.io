@@ -46,7 +46,7 @@ interface HealthIndicator {
 }
 
 // 生态系统健康评估数据
-const ecosystemHealthData = [
+const ecosystemHealthData: EcosystemHealth[] = [
   {
     id: 'EH1',
     name: '诺水河干流生态系统',
@@ -95,7 +95,7 @@ const ecosystemHealthData = [
 ];
 
 // 物种健康评估数据
-const speciesHealthData = [
+const speciesHealthData: SpeciesHealth[] = [
   {
     id: 'SH1',
     speciesId: '1',
@@ -667,49 +667,48 @@ const HealthAssess: React.FC = () => {
 
       {/* 评估列表 */}
       <Card
-        tabBarExtraContent={
-          <Select value={levelFilter} onChange={setLevelFilter} style={{ width: 120 }}>
-            <Option value="all">全部等级</Option>
-            <Option value="excellent">优秀</Option>
-            <Option value="good">良好</Option>
-            <Option value="warning">预警</Option>
-            <Option value="critical">危急</Option>
-          </Select>
+        title={
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <Tabs
+              activeKey={activeTab}
+              onChange={(key) => setActiveTab(key)}
+              type="card"
+              style={{ marginBottom: 0 }}
+              items={[
+                { key: 'ecosystem', label: '生态系统健康' },
+                { key: 'species', label: '物种健康评估' },
+              ]}
+            />
+            <Select value={levelFilter} onChange={setLevelFilter} style={{ width: 120 }}>
+              <Option value="all">全部等级</Option>
+              <Option value="excellent">优秀</Option>
+              <Option value="good">良好</Option>
+              <Option value="warning">预警</Option>
+              <Option value="critical">危急</Option>
+            </Select>
+          </div>
         }
-        activeTabKey={activeTab}
-        onTabChange={(key) => setActiveTab(key)}
-        tabProps={{
-          type: 'card',
-        }}
-        tabs={[
-          {
-            key: 'ecosystem',
-            label: '生态系统健康',
-            children: (
-              <Table
-                columns={ecosystemColumns}
-                dataSource={filteredEcosystemData}
-                rowKey="id"
-                pagination={false}
-                size="middle"
-              />
-            ),
-          },
-          {
-            key: 'species',
-            label: '物种健康评估',
-            children: (
-              <Table
-                columns={speciesHealthColumns}
-                dataSource={filteredSpeciesHealthData}
-                rowKey="id"
-                pagination={false}
-                size="middle"
-              />
-            ),
-          },
-        ]}
-      />
+        headStyle={{ paddingBottom: 0 }}
+      >
+        {activeTab === 'ecosystem' && (
+          <Table
+            columns={ecosystemColumns}
+            dataSource={filteredEcosystemData}
+            rowKey="id"
+            pagination={false}
+            size="middle"
+          />
+        )}
+        {activeTab === 'species' && (
+          <Table
+            columns={speciesHealthColumns}
+            dataSource={filteredSpeciesHealthData}
+            rowKey="id"
+            pagination={false}
+            size="middle"
+          />
+        )}
+      </Card>
 
       {/* 生态系统详情弹窗 */}
       <Modal

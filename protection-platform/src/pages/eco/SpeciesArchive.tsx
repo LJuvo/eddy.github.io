@@ -424,8 +424,12 @@ const SpeciesArchive: React.FC = () => {
                     {selectedSpecies.latinName}
                   </div>
                   <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                    <Tag color="red">一级保护</Tag>
-                    <Tag color="red">CR 极危</Tag>
+                    <Tag color={getProtectionLevel(selectedSpecies.protectionLevel).color}>
+                      {getProtectionLevel(selectedSpecies.protectionLevel).text}保护
+                    </Tag>
+                    <Tag color={getStatusInfo(selectedSpecies.status).color}>
+                      {getStatusInfo(selectedSpecies.status).iucn} {getStatusInfo(selectedSpecies.status).text}
+                    </Tag>
                   </div>
                 </div>
               </div>
@@ -446,13 +450,17 @@ const SpeciesArchive: React.FC = () => {
                     <Descriptions column={2} bordered size="small">
                       <Descriptions.Item label="分类">{selectedSpecies.category}</Descriptions.Item>
                       <Descriptions.Item label="保护级别">
-                        <Tag color="red">国家一级重点保护</Tag>
+                        <Tag color={getProtectionLevel(selectedSpecies.protectionLevel).color}>
+                          国家{getProtectionLevel(selectedSpecies.protectionLevel).text}重点保护
+                        </Tag>
                       </Descriptions.Item>
                       <Descriptions.Item label=" IUCN 濒危等级" span={2}>
-                        <Tag color="red">CR - 极危</Tag>
+                        <Tag color={getStatusInfo(selectedSpecies.status).color}>
+                          {getStatusInfo(selectedSpecies.status).iucn} - {getStatusInfo(selectedSpecies.status).text}
+                        </Tag>
                       </Descriptions.Item>
                       <Descriptions.Item label="分布区域" span={2}>
-                        诺水河核心保护区
+                        {speciesDistributionData.find(d => d.name === selectedSpecies.name)?.location || '待定'}
                       </Descriptions.Item>
                       <Descriptions.Item label="物种描述" span={2}>
                         {selectedSpecies.description}

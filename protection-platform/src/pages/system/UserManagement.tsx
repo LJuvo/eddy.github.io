@@ -31,7 +31,7 @@ import { usersData, rolesData } from '@/mock';
 const { Option } = Select;
 const { Search } = Input;
 
-interface User {
+interface UserItem {
   id: string;
   username: string;
   name: string;
@@ -43,13 +43,13 @@ interface User {
 }
 
 const UserManagement: React.FC = () => {
-  const [data, setData] = useState<User[]>(usersData);
+  const [data, setData] = useState<UserItem[]>(usersData);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isDetailVisible, setIsDetailVisible] = useState(false);
   const [isRoleModalVisible, setIsRoleModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [viewingUser, setViewingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<UserItem | null>(null);
+  const [viewingUser, setViewingUser] = useState<UserItem | null>(null);
   const [form] = Form.useForm();
   const [roleForm] = Form.useForm();
   const [searchText, setSearchText] = useState('');
@@ -69,7 +69,7 @@ const UserManagement: React.FC = () => {
   });
 
   // 打开新建/编辑弹窗
-  const openModal = (user?: User) => {
+  const openModal = (user?: UserItem) => {
     if (user) {
       setEditingUser(user);
       form.setFieldsValue(user);
@@ -91,7 +91,7 @@ const UserManagement: React.FC = () => {
         );
         message.success('用户信息已更新');
       } else {
-        const newUser: User = {
+        const newUser: UserItem = {
           id: `U${String(data.length + 1).padStart(3, '0')}`,
           ...values,
           status: '正常',
@@ -122,13 +122,13 @@ const UserManagement: React.FC = () => {
   };
 
   // 查看详情
-  const handleView = (user: User) => {
+  const handleView = (user: UserItem) => {
     setViewingUser(user);
     setIsDetailVisible(true);
   };
 
   // 分配角色
-  const handleAssignRole = (user: User) => {
+  const handleAssignRole = (user: UserItem) => {
     setEditingUser(user);
     roleForm.setFieldsValue({ userId: user.id, userName: user.name, role: user.role });
     setIsRoleModalVisible(true);
@@ -148,7 +148,7 @@ const UserManagement: React.FC = () => {
   };
 
   // 表格列定义
-  const columns: ColumnsType<User> = [
+  const columns: ColumnsType<UserItem> = [
     {
       title: '用户名',
       dataIndex: 'username',

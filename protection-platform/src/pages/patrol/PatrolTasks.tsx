@@ -220,27 +220,50 @@ const PatrolTasks: React.FC = () => {
     },
   ];
 
-  // 创建任务
+  // 创建/编辑任务
   const handleCreateTask = () => {
     form.validateFields().then(values => {
-      const newTask: PatrolTask = {
-        id: `PT${String(tasks.length + 1).padStart(3, '0')}`,
-        title: values.title,
-        type: values.type,
-        status: 'pending',
-        assignedTo: values.assignedTo,
-        assignedBy: values.assignedBy || '王管理员',
-        route: values.route,
-        startTime: values.startTime.format('YYYY-MM-DD HH:mm'),
-        endTime: values.endTime?.format('YYYY-MM-DD HH:mm'),
-        scheduledDate: values.scheduledDate.format('YYYY-MM-DD'),
-        remarks: values.remarks,
-        createdAt: dayjs().format('YYYY-MM-DD HH:mm'),
-      };
-      setTasks([newTask, ...tasks]);
+      if (selectedTask) {
+        // 编辑任务
+        setTasks(tasks.map(t => 
+          t.id === selectedTask.id 
+            ? {
+                ...t,
+                title: values.title,
+                type: values.type,
+                assignedTo: values.assignedTo,
+                assignedBy: values.assignedBy || '王管理员',
+                route: values.route,
+                startTime: values.startTime.format('YYYY-MM-DD HH:mm'),
+                endTime: values.endTime?.format('YYYY-MM-DD HH:mm'),
+                scheduledDate: values.scheduledDate.format('YYYY-MM-DD'),
+                remarks: values.remarks,
+              }
+            : t
+        ));
+        message.success('编辑成功');
+      } else {
+        // 创建任务
+        const newTask: PatrolTask = {
+          id: `PT${String(tasks.length + 1).padStart(3, '0')}`,
+          title: values.title,
+          type: values.type,
+          status: 'pending',
+          assignedTo: values.assignedTo,
+          assignedBy: values.assignedBy || '王管理员',
+          route: values.route,
+          startTime: values.startTime.format('YYYY-MM-DD HH:mm'),
+          endTime: values.endTime?.format('YYYY-MM-DD HH:mm'),
+          scheduledDate: values.scheduledDate.format('YYYY-MM-DD'),
+          remarks: values.remarks,
+          createdAt: dayjs().format('YYYY-MM-DD HH:mm'),
+        };
+        setTasks([newTask, ...tasks]);
+        message.success('创建成功');
+      }
       setCreateModalVisible(false);
       form.resetFields();
-      message.success('创建成功');
+      setSelectedTask(null);
     });
   };
 
@@ -468,8 +491,9 @@ const PatrolTasks: React.FC = () => {
               <Form.Item
                 name="assignedBy"
                 label="派发人"
+                initialValue="王管理员"
               >
-                <Input placeholder="请输入派发人" defaultValue="王管理员" />
+                <Input placeholder="请输入派发人" />
               </Form.Item>
             </Col>
           </Row>

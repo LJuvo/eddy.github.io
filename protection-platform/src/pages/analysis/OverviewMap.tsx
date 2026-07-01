@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { CSSProperties } from 'react';
 import * as echarts from 'echarts';
 import ReactECharts from 'echarts-for-react';
 import {
@@ -21,7 +22,7 @@ import {
 import {
   GlobalOutlined,
   AppstoreOutlined,
-  LayersOutlined,
+  BarsOutlined,
   EyeOutlined,
   EyeInvisibleOutlined,
   FullscreenOutlined,
@@ -225,7 +226,7 @@ const OverviewMap: React.FC = () => {
   const tools = [
     { id: 'pan', icon: <GlobalOutlined />, name: '平移' },
     { id: 'select', icon: <AppstoreOutlined />, name: '选择' },
-    { id: 'measure', icon: <LayersOutlined />, name: '测量' },
+    { id: 'measure', icon: <BarsOutlined />, name: '测量' },
     { id: 'draw', icon: <AppstoreOutlined />, name: '绘制' },
   ];
 
@@ -259,7 +260,7 @@ const OverviewMap: React.FC = () => {
     },
   ];
 
-  const containerStyle = fullscreen ? {
+  const containerStyle: CSSProperties = fullscreen ? {
     position: 'fixed',
     top: 0,
     left: 0,
@@ -291,7 +292,7 @@ const OverviewMap: React.FC = () => {
           <Card
             title={
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <LayersOutlined style={{ color: '#1890ff' }} />
+                <BarsOutlined style={{ color: '#1890ff' }} />
                 <span>图层控制</span>
               </div>
             }
@@ -340,7 +341,6 @@ const OverviewMap: React.FC = () => {
                         value={layer.opacity * 100}
                         onChange={(value) => handleLayerOpacity(layer.id, value)}
                         style={{ width: 80 }}
-                        size="small"
                       />
                     </div>
                   ))}
@@ -370,7 +370,6 @@ const OverviewMap: React.FC = () => {
                         value={layer.opacity * 100}
                         onChange={(value) => handleLayerOpacity(layer.id, value)}
                         style={{ width: 80 }}
-                        size="small"
                       />
                     </div>
                   ))}

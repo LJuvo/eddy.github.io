@@ -33,7 +33,7 @@ const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 // 模拟种群监测数据
-const populationData = [
+const populationData: PopulationRecord[] = [
   { id: '1', speciesId: '1', speciesName: '大鲵', year: 2024, quarter: 'Q1', population: 48, trend: 'increase', location: '核心区', waterQuality: '优', remarks: '繁殖成功' },
   { id: '2', speciesId: '1', speciesName: '大鲵', year: 2023, quarter: 'Q4', population: 45, trend: 'stable', location: '核心区', waterQuality: '优', remarks: '' },
   { id: '3', speciesId: '1', speciesName: '大鲵', year: 2023, quarter: 'Q3', population: 43, trend: 'stable', location: '核心区', waterQuality: '良', remarks: '' },

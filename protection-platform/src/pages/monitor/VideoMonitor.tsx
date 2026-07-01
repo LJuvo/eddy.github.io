@@ -14,6 +14,7 @@ import {
   Tooltip,
   message,
   Empty,
+  Statistic,
 } from 'antd';
 import {
   VideoCameraOutlined,

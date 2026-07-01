@@ -30,7 +30,7 @@ import {
   FilterOutlined,
   LineChartOutlined,
   BankOutlined,
-  WaterDropOutlined,
+  CloudOutlined,
   SyncOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -473,7 +473,7 @@ const WaterMonitoring: React.FC = () => {
           <Avatar
             size="small"
             style={{ background: record.status === 'online' ? '#52c41a' : '#ff4d4f' }}
-            icon={<WaterDropOutlined />}
+            icon={<CloudOutlined />}
           />
           <div>
             <div style={{ fontWeight: 500 }}>{name}</div>

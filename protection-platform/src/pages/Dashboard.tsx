@@ -12,16 +12,11 @@ import {
   Space, 
   Statistic, 
   Progress,
-  Timeline,
   List,
   Avatar,
   Badge,
-  Tabs,
   Modal,
   Descriptions,
-  Input,
-  Select,
-  DatePicker,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -30,7 +25,6 @@ import {
   TeamOutlined,
   ApiOutlined,
   EnvironmentOutlined,
-  ClockCircleOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
   EyeOutlined,
@@ -39,7 +33,6 @@ import {
   WarningOutlined,
   RightOutlined,
   PlusOutlined,
-  SearchOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import {
@@ -47,19 +40,16 @@ import {
   patrolTasks,
   patrolAlerts,
   speciesList,
-  monitorDevices,
   patrolPersonnel,
   patrolTrendData,
   alertTrendData,
 } from '@/mock';
-import type { PatrolTask, PatrolAlert, Species, MonitorDevice } from '@/types';
-
-const { Option } = Select;
-const { RangePicker } = DatePicker;
+import type { PatrolTask, PatrolAlert, Species } from '@/types';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [selectedAlert, setSelectedAlert] = useState<PatrolAlert | null>(null);
+  const [selectedTask, setSelectedTask] = useState<PatrolTask | null>(null);
   const [alertModalVisible, setAlertModalVisible] = useState(false);
   const [taskModalVisible, setTaskModalVisible] = useState(false);
 
@@ -170,7 +160,7 @@ const Dashboard: React.FC = () => {
             size="small" 
             icon={<EyeOutlined />}
             onClick={() => {
-              setSelectedAlert(null);
+              setSelectedTask(record);
               setTaskModalVisible(true);
             }}
           >
@@ -711,39 +701,65 @@ const Dashboard: React.FC = () => {
         footer={
           <Space>
             <Button onClick={() => setTaskModalVisible(false)}>关闭</Button>
-            <Button type="primary">编辑任务</Button>
+            {selectedTask?.status === 'pending' && (
+              <Button type="primary">派发任务</Button>
+            )}
+            {selectedTask?.status === 'assigned' && (
+              <Button type="primary">开始执行</Button>
+            )}
+            {selectedTask?.status === 'in_progress' && (
+              <Button type="primary" danger>结束任务</Button>
+            )}
           </Space>
         }
         width={700}
       >
-        <Descriptions column={2} bordered size="small" style={{ marginTop: 16 }}>
-          <Descriptions.Item label="任务编号">PT001</Descriptions.Item>
-          <Descriptions.Item label="任务类型">
-            <Tag color="blue">日常巡护</Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="任务状态">
-            <Tag color="processing">进行中</Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label="执行人">李建国</Descriptions.Item>
-          <Descriptions.Item label="计划路线" span={2}>
-            诺水河干流-涪阳镇至诺江镇段
-          </Descriptions.Item>
-          <Descriptions.Item label="计划时间">
-            2024-01-15 08:00 - 17:00
-          </Descriptions.Item>
-          <Descriptions.Item label="计划时长">
-            9小时
-          </Descriptions.Item>
-          <Descriptions.Item label="创建时间">
-            2024-01-10 09:00
-          </Descriptions.Item>
-          <Descriptions.Item label="派发人">
-            王管理员
-          </Descriptions.Item>
-          <Descriptions.Item label="任务描述" span={2}>
-            重点关注河道内是否存在非法捕捞行为，发现异常及时上报。
-          </Descriptions.Item>
-        </Descriptions>
+        {selectedTask && (
+          <Descriptions column={2} bordered size="small" style={{ marginTop: 16 }}>
+            <Descriptions.Item label="任务编号">{selectedTask.id}</Descriptions.Item>
+            <Descriptions.Item label="任务类型">
+              {(() => {
+                const typeMap: Record<string, { color: string; text: string }> = {
+                  routine: { color: 'blue', text: '日常巡护' },
+                  special: { color: 'purple', text: '专项巡护' },
+                  emergency: { color: 'red', text: '紧急巡护' },
+                };
+                const config = typeMap[selectedTask.type] || { color: 'default', text: selectedTask.type };
+                return <Tag color={config.color}>{config.text}</Tag>;
+              })()}
+            </Descriptions.Item>
+            <Descriptions.Item label="任务状态">
+              {(() => {
+                const statusMap: Record<string, { color: string; text: string }> = {
+                  pending: { color: 'default', text: '待派发' },
+                  assigned: { color: 'processing', text: '已派发' },
+                  in_progress: { color: 'blue', text: '进行中' },
+                  completed: { color: 'success', text: '已完成' },
+                  cancelled: { color: 'default', text: '已取消' },
+                };
+                const config = statusMap[selectedTask.status] || { color: 'default', text: selectedTask.status };
+                return <Tag color={config.color}>{config.text}</Tag>;
+              })()}
+            </Descriptions.Item>
+            <Descriptions.Item label="执行人">{selectedTask.assignedTo}</Descriptions.Item>
+            <Descriptions.Item label="派发人">{selectedTask.assignedBy}</Descriptions.Item>
+            <Descriptions.Item label="计划路线" span={2}>
+              {selectedTask.route}
+            </Descriptions.Item>
+            <Descriptions.Item label="计划日期">{selectedTask.scheduledDate}</Descriptions.Item>
+            <Descriptions.Item label="计划时长">
+              {selectedTask.endTime
+                ? `${dayjs(selectedTask.endTime).diff(dayjs(selectedTask.startTime), 'hour')}小时`
+                : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="开始时间">{selectedTask.startTime}</Descriptions.Item>
+            <Descriptions.Item label="结束时间">{selectedTask.endTime || '-'}</Descriptions.Item>
+            <Descriptions.Item label="创建时间" span={2}>{selectedTask.createdAt}</Descriptions.Item>
+            <Descriptions.Item label="备注" span={2}>
+              {selectedTask.remarks || '-'}
+            </Descriptions.Item>
+          </Descriptions>
+        )}
       </Modal>
     </div>
   );

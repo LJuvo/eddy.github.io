@@ -16,20 +16,16 @@ import {
   Statistic,
   Progress,
   Image,
-  Divider,
   List,
   Avatar,
 } from 'antd';
 import {
-  EnvironmentOutlined,
   BankOutlined,
   GlobalOutlined,
   FileTextOutlined,
   EditOutlined,
-  SaveOutlined,
   ProjectOutlined,
   TeamOutlined,
-  SettingOutlined,
 } from '@ant-design/icons';
 import { reserveInfo, speciesList, patrolPersonnel, administrativeZones } from '@/mock';
 import * as echarts from 'echarts';

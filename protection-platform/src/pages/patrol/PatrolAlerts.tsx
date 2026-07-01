@@ -236,7 +236,6 @@ const PatrolAlerts: React.FC = () => {
             <Button
               type="link"
               size="small"
-              type="primary"
               onClick={() => {
                 setSelectedAlert(record);
                 handleForm.setFieldsValue({ handler: patrolPersonnel[0]?.name });

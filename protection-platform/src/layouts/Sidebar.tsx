@@ -254,16 +254,22 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
     navigate(e.key);
   };
 
-  const getSelectedKey = () => {
+  const getSelectedKeys = (): string[] => {
     const path = location.pathname;
-    const matchedItem = menuItems.find(item => {
-      if (item?.key === path) return true;
-      if (item?.children) {
-        return item.children.some(child => child?.key === path);
+    return [path];
+  };
+
+  const getOpenKeys = (): string[] => {
+    const path = location.pathname;
+    const openKeys: string[] = [];
+    menuItems.forEach(item => {
+      if (item && 'children' in item && item.children) {
+        if (item.children.some((child: any) => child?.key === path)) {
+          openKeys.push(item.key as string);
+        }
       }
-      return false;
     });
-    return matchedItem?.key as string || path;
+    return openKeys;
   };
 
   return (
@@ -277,13 +283,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
         background: '#1f2d3d',
         transition: 'width 0.2s ease',
         zIndex: 100,
-        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       {/* Logo区域 */}
       <div
         style={{
           height: 60,
+          flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'flex-start',
@@ -321,11 +329,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
       </div>
 
       {/* 菜单 */}
-      <div style={{ height: 'calc(100vh - 60px)', overflow: 'auto' }}>
+      <div style={{ flex: 1, overflow: 'auto' }}>
         <Menu
           mode="inline"
           theme="dark"
-          selectedKeys={[getSelectedKey()]}
+          selectedKeys={getSelectedKeys()}
+          defaultOpenKeys={getOpenKeys()}
           onClick={handleMenuClick}
           inlineCollapsed={collapsed}
           items={menuItems}
@@ -339,12 +348,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
       {/* 折叠按钮 */}
       <div
         style={{
-          position: 'absolute',
-          bottom: 20,
-          left: 0,
-          right: 0,
+          flexShrink: 0,
+          padding: '16px 0',
           display: 'flex',
           justifyContent: 'center',
+          borderTop: '1px solid rgba(255,255,255,0.1)',
         }}
       >
         <div

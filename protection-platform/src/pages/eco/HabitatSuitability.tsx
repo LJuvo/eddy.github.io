@@ -17,6 +17,7 @@ import {
   Statistic,
   Rate,
   Tooltip,
+  List,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -34,7 +35,7 @@ import { speciesList } from '@/mock';
 const { Option } = Select;
 
 // 生境适宜性评估数据
-const habitatData = [
+const habitatData: Habitat[] = [
   {
     id: 'H1',
     name: '核心区大鲵栖息地',
@@ -577,11 +578,11 @@ const HabitatSuitability: React.FC = () => {
                   </Tag>
                 </div>
                 <div style={{ fontSize: 24, fontWeight: 700, color: '#1B5E8C' }}>
-                  {(habitatData.reduce((sum, h) => sum + h[indicator.key as keyof Habitat] as number, 0) / habitatData.length).toFixed(1)}
+                  {(habitatData.reduce((sum, h) => sum + (h[indicator.key as keyof Habitat] as number), 0) / habitatData.length).toFixed(1)}
                   <span style={{ fontSize: 14, color: '#999', fontWeight: 400 }}>/100</span>
                 </div>
                 <Progress
-                  percent={habitatData.reduce((sum, h) => sum + h[indicator.key as keyof Habitat] as number, 0) / habitatData.length}
+                  percent={habitatData.reduce((sum, h) => sum + (h[indicator.key as keyof Habitat] as number), 0) / habitatData.length}
                   showInfo={false}
                   strokeColor={indicator.inverse ? '#faad14' : '#2D7D46'}
                   style={{ marginTop: 8 }}

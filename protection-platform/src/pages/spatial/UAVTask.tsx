@@ -24,12 +24,10 @@ import {
   SearchOutlined,
   EyeOutlined,
   EditOutlined,
-  DeleteOutlined,
   PlayCircleOutlined,
   PauseCircleOutlined,
   CheckCircleOutlined,
 } from '@ant-design/icons';
-import dayjs from 'dayjs';
 
 interface UAVTask {
   id: string;

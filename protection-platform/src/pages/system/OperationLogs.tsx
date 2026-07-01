@@ -3,7 +3,6 @@ import {
   Card,
   Table,
   Button,
-  Space,
   Input,
   Select,
   Tag,
@@ -13,19 +12,19 @@ import {
   DatePicker,
   Descriptions,
   Badge,
- Statistic,
+  Statistic,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
   FileTextOutlined,
   SearchOutlined,
   EyeOutlined,
-  DeleteOutlined,
   DownloadOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import { operationLogsData } from '@/mock';
 import dayjs from 'dayjs';
+import type { Dayjs } from 'dayjs';
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -49,7 +48,7 @@ const OperationLogs: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [moduleFilter, setModuleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
+  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
 
   // 模块列表
   const moduleList = ['系统', '巡护管理', '生态数据', '监测预警', '系统管理'];
@@ -59,7 +58,7 @@ const OperationLogs: React.FC = () => {
     search?: string,
     module?: string,
     status?: string,
-    date?: [moment.Moment | null, moment.Moment | null] | null
+    date?: [Dayjs | null, Dayjs | null] | null
   ) => {
     const searchVal = search !== undefined ? search : searchText;
     const moduleVal = module !== undefined ? module : moduleFilter;
@@ -94,7 +93,8 @@ const OperationLogs: React.FC = () => {
       const endDate = dateVal[1].endOf('day');
       result = result.filter((item) => {
         const logDate = dayjs(item.time);
-        return logDate.isBetween(startDate, endDate, 'day', '[]');
+        return (logDate.isSame(startDate) || logDate.isAfter(startDate)) &&
+               (logDate.isSame(endDate) || logDate.isBefore(endDate));
       });
     }
 

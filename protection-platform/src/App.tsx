@@ -1,10 +1,8 @@
-import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, ReactNode } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { Spin } from 'antd';
-import { MainLayout } from '@/layouts';
 import routes from '@/router';
 
-// 加载中组件
 const LoadingFallback: React.FC = () => (
   <div style={{ 
     display: 'flex', 
@@ -17,50 +15,39 @@ const LoadingFallback: React.FC = () => (
   </div>
 );
 
-// 懒加载包装组件
-const LazyRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => (
+const LazyRoute: React.FC<{ element: ReactNode }> = ({ element }) => (
   <Suspense fallback={<LoadingFallback />}>
     {element}
   </Suspense>
 );
 
 function App() {
+  const renderRoutes = (routeList: typeof routes) => {
+    return routeList.map((route, index) => (
+      <Route
+        key={index}
+        path={route.path}
+        element={route.element}
+      >
+        {route.children?.map((child, childIndex) => (
+          <Route
+            key={childIndex}
+            index={child.index}
+            path={child.path}
+            element={
+              child.element ? (
+                <LazyRoute element={child.element} />
+              ) : undefined
+            }
+          />
+        ))}
+      </Route>
+    ));
+  };
+
   return (
     <Routes>
-      {routes.map((route, index) => (
-        <Route
-          key={index}
-          path={route.path}
-          element={
-            route.element ? (
-              React.isValidElement(route.element) ? (
-                <LazyRoute element={route.element} />
-              ) : (
-                route.element
-              )
-            ) : null
-          }
-        >
-          {route.children?.map((child, childIndex) => (
-            <Route
-              key={childIndex}
-              index={child.index}
-              path={child.path}
-              element={
-                child.element ? (
-                  React.isValidElement(child.element) ? (
-                    <LazyRoute element={child.element} />
-                  ) : (
-                    child.element
-                  )
-                ) : child.index ? (
-                  <Navigate to={child.path || '/dashboard'} replace />
-                ) : null
-              }
-            />
-          ))}
-        </Route>
-      ))}
+      {renderRoutes(routes)}
     </Routes>
   );
 }

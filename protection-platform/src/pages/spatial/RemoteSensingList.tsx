@@ -5,11 +5,8 @@ import {
   Tag,
   Button,
   Space,
-  Modal,
-  Form,
   Input,
   Select,
-  DatePicker,
   Row,
   Col,
   Image,
@@ -24,10 +21,8 @@ import {
   SearchOutlined,
   EyeOutlined,
   DownloadOutlined,
-  CompareOutlined,
-  CloudOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
-import { remoteSensingData } from '@/mock';
 import dayjs from 'dayjs';
 
 interface RemoteSensingItem {
@@ -150,7 +145,7 @@ const RemoteSensingList: React.FC = () => {
           <Button type="link" size="small" icon={<DownloadOutlined />}>
             下载
           </Button>
-          <Button type="link" size="small" icon={<CompareOutlined />} onClick={() => {
+          <Button type="link" size="small" icon={<SwapOutlined />} onClick={() => {
             message.info('请在对比页面选择此影像');
           }}>
             对比
@@ -183,7 +178,7 @@ const RemoteSensingList: React.FC = () => {
           <Button type="primary" icon={<PlusOutlined />}>
             导入影像
           </Button>
-          <Button icon={<CompareOutlined />} disabled={selectedRowKeys.length < 2}>
+          <Button icon={<SwapOutlined />} disabled={selectedRowKeys.length < 2}>
             影像对比
           </Button>
         </div>
@@ -264,7 +259,7 @@ const RemoteSensingList: React.FC = () => {
         extra={
           <Space>
             <Button icon={<DownloadOutlined />}>下载</Button>
-            <Button type="primary" icon={<CompareOutlined />}>添加到对比</Button>
+            <Button type="primary" icon={<SwapOutlined />}>添加到对比</Button>
           </Space>
         }
       >

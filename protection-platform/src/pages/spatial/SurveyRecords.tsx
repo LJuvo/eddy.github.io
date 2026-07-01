@@ -30,7 +30,6 @@ import {
   EnvironmentOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { surveyRecordsData } from '@/mock';
 
 interface SurveyRecord {
   id: string;
