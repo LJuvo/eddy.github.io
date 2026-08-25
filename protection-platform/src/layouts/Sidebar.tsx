@@ -26,6 +26,7 @@ import {
   BankOutlined,
   FileDoneOutlined,
   RobotOutlined,
+  CompassOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Menu } from 'antd';
@@ -212,6 +213,18 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
           key: '/analysis/report',
           label: '报告生成',
           icon: <FileDoneOutlined />,
+        },
+      ],
+    },
+    {
+      key: 'thematic',
+      icon: <CompassOutlined />,
+      label: '专题展示',
+      children: [
+        {
+          key: '/thematic/showcase',
+          label: '自然保护区专题',
+          icon: <GlobalOutlined />,
         },
       ],
     },

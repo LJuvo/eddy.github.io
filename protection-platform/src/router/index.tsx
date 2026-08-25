@@ -37,6 +37,7 @@ const RoleManagement = lazy(() => import('@/pages/system/RoleManagement'));
 const PermissionConfig = lazy(() => import('@/pages/system/PermissionConfig'));
 const OrgStructure = lazy(() => import('@/pages/system/OrgStructure'));
 const OperationLogs = lazy(() => import('@/pages/system/OperationLogs'));
+const ThematicShowcase = lazy(() => import('@/pages/thematic/ThematicShowcase'));
 
 // 路由配置
 export const routes: RouteObject[] = [
@@ -185,6 +186,11 @@ export const routes: RouteObject[] = [
       {
         path: 'system/logs',
         element: <OperationLogs />,
+      },
+      // 专题展示
+      {
+        path: 'thematic/showcase',
+        element: <ThematicShowcase />,
       },
     ],
   },
