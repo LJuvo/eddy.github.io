@@ -731,10 +731,10 @@ const overlayStyle: CSSProperties = {
   left: 0,
   right: 0,
   bottom: 0,
-  background:
-    'linear-gradient(90deg, rgba(5,15,35,0.88) 0%, rgba(5,15,35,0.65) 25%, rgba(5,15,35,0.3) 55%, rgba(5,15,35,0.15) 100%)',
+  background: 'radial-gradient(ellipse at center, #030b0d00 28%, #030b0d57 51%, #030b0dd1 76%, #030b0d)',
   pointerEvents: 'none',
-  zIndex: 100,
+  zIndex: 1,
+  transition: 'opacity .5s ease',
 };
 
 const topBarStyle: CSSProperties = {
