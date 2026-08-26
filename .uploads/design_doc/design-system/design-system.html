@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四川诺水河珍稀水生动物国家级自然保护区综合管理平台 - UI设计规范</title>
+<style>
+/* ===== 全局重置与基础 ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 14px; line-height: 1.6; color: #1f2937; background: #f5f7fa;
+}
+a { text-decoration: none; color: #1B5E8C; }
+ul, ol { list-style: none; }
+
+/* ===== 布局框架 ===== */
+.page-wrapper { display: flex; min-height: 100vh; }
+
+/* 左侧导航 */
+.sidebar {
+  position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+  background: #ffffff; border-right: 1px solid #e5e9f0;
+  overflow-y: auto; z-index: 100; padding: 24px 0;
+}
+.sidebar-header {
+  padding: 0 20px 20px; border-bottom: 1px solid #e5e9f0; margin-bottom: 16px;
+}
+.sidebar-header .logo {
+  display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; color: #2D7D46;
+}
+.sidebar-header .logo-icon {
+  width: 32px; height: 32px; background: #2D7D46; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px;
+}
+.sidebar-header .sub-title { font-size: 12px; color: #6b7280; margin-top: 4px; font-weight: 400; }
+
+.nav-menu { padding: 0 12px; }
+.nav-menu li { margin-bottom: 2px; }
+.nav-menu a {
+  display: block; padding: 8px 12px; border-radius: 6px;
+  font-size: 13px; color: #4b5563; transition: all 150ms ease-out;
+}
+.nav-menu a:hover { background: #f0fdf4; color: #2D7D46; }
+.nav-menu a.active { background: #2D7D46; color: #fff; }
+.nav-menu .nav-section { font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; padding: 12px 12px 6px; }
+
+/* 主内容区 */
+.main-content { margin-left: 260px; flex: 1; min-height: 100vh; }
+.content-container { max-width: 1200px; margin: 0 auto; padding: 40px 48px; }
+
+/* ===== 排版规范 ===== */
+.section { margin-bottom: 64px; }
+.section-title {
+  font-size: 28px; font-weight: 600; color: #1f2937; margin-bottom: 8px;
+  padding-bottom: 16px; border-bottom: 2px solid #e5e9f0; position: relative;
+}
+.section-title::after {
+  content: ''; position: absolute; bottom: -2px; left: 0; width: 80px; height: 2px; background: #2D7D46;
+}
+.section-desc { font-size: 14px; color: #6b7280; margin-bottom: 32px; }
+
+.section-subtitle {
+  font-size: 22px; font-weight: 600; color: #1f2937; margin: 32px 0 16px;
+}
+.section-h3 {
+  font-size: 17px; font-weight: 600; color: #374151; margin: 24px 0 12px;
+}
+
+p { margin-bottom: 12px; }
+
+/* ===== 色彩展示组件 ===== */
+.color-palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.color-item { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e5e9f0; transition: transform 150ms ease-out; }
+.color-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.color-block { height: 80px; display: flex; align-items: flex-end; padding: 8px; }
+.color-info { padding: 12px; }
+.color-hex { font-family: 'SF Mono', monospace; font-size: 14px; font-weight: 600; color: #1f2937; }
+.color-name { font-size: 13px; color: #374151; margin-top: 2px; }
+.color-usage { font-size: 12px; color: #6b7280; margin-top: 4px; line-height: 1.4; }
+
+/* ===== 字体展示 ===== */
+.type-specimen { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+.type-row { display: flex; align-items: baseline; gap: 24px; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+.type-row:last-child { border-bottom: none; }
+.type-label { width: 120px; font-size: 12px; color: #6b7280; font-weight: 500; }
+.type-sample { flex: 1; }
+.type-meta { font-size: 12px; color: #9ca3af; font-family: 'SF Mono', monospace; }
+
+/* ===== 布局展示 ===== */
+.layout-demo { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+.layout-pc-demo { position: relative; height: 300px; background: #f5f7fa; border-radius: 8px; overflow: hidden; }
+.layout-pc-sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 180px; background: #1f2937; color: #fff; padding: 16px; font-size: 12px; }
+.layout-pc-header { position: absolute; left: 180px; top: 0; right: 0; height: 40px; background: #fff; border-bottom: 1px solid #e5e9f0; display: flex; align-items: center; padding: 0 16px; font-size: 12px; }
+.layout-pc-content { position: absolute; left: 180px; top: 40px; right: 0; bottom: 0; padding: 16px; font-size: 12px; color: #6b7280; }
+.layout-pc-grid-line { position: absolute; left: 200px; top: 56px; right: 16px; bottom: 16px; border: 2px dashed #e5e9f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+
+.layout-mobile-demo { position: relative; width: 280px; height: 460px; background: #fff; border: 8px solid #1f2937; border-radius: 28px; margin: 0 auto; overflow: hidden; }
+.layout-mobile-screen { height: 100%; display: flex; flex-direction: column; }
+.layout-mobile-header { height: 40px; background: #fff; border-bottom: 1px solid #e5e9f0; display: flex; align-items: center; padding: 0 12px; font-size: 12px; }
+.layout-mobile-body { flex: 1; padding: 12px; font-size: 11px; color: #6b7280; overflow: hidden; }
+.layout-mobile-tabbar { height: 52px; background: #fff; border-top: 1px solid #e5e9f0; display: flex; justify-content: space-around; align-items: center; font-size: 10px; color: #6b7280; }
+.layout-mobile-tabbar .tab-active { color: #2D7D46; font-weight: 600; }
+.layout-mobile-safe { position: absolute; bottom: 52px; left: 0; right: 0; height: 20px; background: repeating-linear-gradient(45deg, #fef3c7, #fef3c7 4px, #fde68a 4px, #fde68a 8px); opacity: 0.5; }
+
+/* ===== 组件展示 ===== */
+.component-demo { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; padding: 24px; margin-bottom: 24px; }
+.demo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.demo-label { font-size: 12px; color: #6b7280; width: 80px; flex-shrink: 0; }
+
+/* 按钮 */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 500;
+  border: 1px solid transparent; cursor: pointer; transition: all 150ms ease-out;
+  font-family: inherit;
+}
+.btn-sm { padding: 4px 12px; font-size: 12px; border-radius: 4px; }
+.btn-lg { padding: 10px 24px; font-size: 16px; border-radius: 8px; }
+.btn-primary { background: #2D7D46; color: #fff; border-color: #2D7D46; }
+.btn-primary:hover { background: #256a3b; }
+.btn-secondary { background: #fff; color: #1f2937; border-color: #d1d5db; }
+.btn-secondary:hover { border-color: #2D7D46; color: #2D7D46; }
+.btn-text { background: transparent; color: #1B5E8C; padding-left: 8px; padding-right: 8px; }
+.btn-text:hover { background: #eff6ff; }
+.btn-danger { background: #C62828; color: #fff; border-color: #C62828; }
+.btn-danger:hover { background: #a82323; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* 表单 */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%; max-width: 320px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;
+  font-family: inherit; font-size: 14px; color: #1f2937; background: #fff; transition: all 150ms ease-out;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: #2D7D46; box-shadow: 0 0 0 3px rgba(45,125,70,0.1);
+}
+.form-input.error, .form-select.error { border-color: #C62828; }
+.form-input.error:focus { box-shadow: 0 0 0 3px rgba(198,40,40,0.1); }
+.form-input:disabled, .form-select:disabled, .form-textarea:disabled { background: #f3f4f6; color: #6b7280; }
+.form-textarea { min-height: 80px; resize: vertical; }
+.form-error-msg { font-size: 12px; color: #C62828; margin-top: 4px; }
+
+/* 表格 */
+.demo-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.demo-table th, .demo-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e9f0; }
+.demo-table th { background: #f9fafb; font-weight: 600; color: #374151; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+.demo-table tbody tr:hover { background: #f0fdf4; }
+.demo-table tbody tr.selected { background: #dcfce7; }
+.demo-table tbody tr:nth-child(even) { background: #fafafa; }
+.demo-table tbody tr:nth-child(even):hover { background: #f0fdf4; }
+.demo-table tbody tr:nth-child(even).selected { background: #dcfce7; }
+
+/* 标签 */
+.tag {
+  display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 4px;
+  font-size: 12px; font-weight: 500; line-height: 20px;
+}
+.tag-success { background: #f0fdf4; color: #2D7D46; border: 1px solid #bbf7d0; }
+.tag-warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.tag-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.tag-info { background: #eff6ff; color: #1B5E8C; border: 1px solid #bfdbfe; }
+.tag-eco-a { background: #f0fdf4; color: #2D7D46; border: 1px solid #bbf7d0; }
+.tag-eco-b { background: #f0fdf4; color: #7CB342; border: 1px solid #d9f99d; }
+.tag-eco-c { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.tag-eco-d { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.tag-eco-e { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+/* 卡片 */
+.card { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; padding: 20px; }
+.card-data { display: flex; flex-direction: column; gap: 8px; }
+.card-data .card-label { font-size: 12px; color: #6b7280; }
+.card-data .card-value { font-size: 24px; font-weight: 700; color: #1f2937; }
+.card-data .card-trend { font-size: 12px; color: #2D7D46; }
+.card-stat { background: linear-gradient(135deg, #2D7D46 0%, #1B5E8C 100%); color: #fff; }
+.card-stat .card-label { color: rgba(255,255,255,0.75); }
+.card-stat .card-value { color: #fff; }
+.card-stat .card-trend { color: #a7f3d0; }
+
+/* 导航 */
+.demo-nav-sidebar { width: 200px; background: #1f2937; border-radius: 8px; padding: 12px 0; color: #fff; font-size: 13px; }
+.demo-nav-sidebar .nav-item { padding: 8px 16px; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: background 150ms; }
+.demo-nav-sidebar .nav-item:hover, .demo-nav-sidebar .nav-item.active { background: #2D7D46; }
+.demo-nav-sidebar .nav-icon { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+
+.demo-tabbar { display: flex; background: #fff; border-top: 1px solid #e5e9f0; padding: 6px 0; border-radius: 0 0 8px 8px; }
+.demo-tabbar .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #6b7280; cursor: pointer; }
+.demo-tabbar .tab-item.active { color: #2D7D46; }
+.demo-tabbar .tab-icon { font-size: 20px; }
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #6b7280; }
+.breadcrumb a { color: #1B5E8C; }
+.breadcrumb .sep { color: #d1d5db; }
+
+/* 弹窗 */
+.modal-overlay { background: rgba(0,0,0,0.45); border-radius: 8px; padding: 40px; display: flex; align-items: center; justify-content: center; min-height: 200px; }
+.modal-box { background: #fff; border-radius: 8px; width: 100%; max-width: 400px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+.modal-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+.modal-body { font-size: 14px; color: #6b7280; margin-bottom: 20px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; }
+
+.drawer-demo { position: relative; height: 200px; background: #f5f7fa; border-radius: 8px; overflow: hidden; }
+.drawer-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.2); }
+.drawer-panel { position: absolute; right: 0; top: 0; bottom: 0; width: 280px; background: #fff; box-shadow: -4px 0 16px rgba(0,0,0,0.1); padding: 20px; }
+.drawer-title { font-size: 17px; font-weight: 600; margin-bottom: 12px; }
+
+/* 图表 */
+.chart-bar { display: flex; align-items: flex-end; gap: 8px; height: 120px; padding: 0 8px; }
+.chart-bar-item { flex: 1; border-radius: 4px 4px 0 0; min-height: 8px; transition: opacity 150ms; }
+.chart-bar-item:hover { opacity: 0.8; }
+.chart-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; font-size: 12px; }
+.chart-legend-item { display: flex; align-items: center; gap: 4px; }
+.chart-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* 图标 */
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 16px; }
+.icon-item { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px; border-radius: 8px; transition: background 150ms; }
+.icon-item:hover { background: #f0fdf4; }
+.icon-visual {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  color: #374151;
+}
+.icon-visual svg, .icon-visual .svg-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.icon-name { font-size: 11px; color: #6b7280; text-align: center; }
+
+/* ===== 动效展示 ===== */
+.anim-demo { background: #fff; border: 1px solid #e5e9f0; border-radius: 8px; padding: 24px; margin-bottom: 16px; }
+.anim-box {
+  width: 60px; height: 60px; background: #2D7D46; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px;
+  cursor: pointer;
+}
+.anim-hover:hover { transform: scale(1.05); transition: transform 150ms ease-out; }
+.anim-switch { animation: switchAnim 2.5s ease-in-out infinite alternate; }
+@keyframes switchAnim { from { transform: translateX(0); } to { transform: translateX(100px); } }
+.anim-modal-enter { animation: modalEnter 1.5s ease-out infinite alternate; }
+@keyframes modalEnter { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.anim-drawer-enter { animation: drawerEnter 1.5s ease-out infinite alternate; }
+@keyframes drawerEnter { from { transform: translateX(40px); opacity: 0.7; } to { transform: translateX(0); opacity: 1; } }
+
+/* ===== 差异对照表 ===== */
+.compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.compare-table th, .compare-table td { padding: 12px 16px; text-align: left; border: 1px solid #e5e9f0; }
+.compare-table th { background: #f9fafb; font-weight: 600; color: #374151; }
+.compare-table td { background: #fff; vertical-align: top; }
+.compare-table .col-component { width: 140px; font-weight: 500; background: #f0fdf4; }
+
+/* ===== 辅助工具类 ===== */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.mt-4 { margin-top: 16px; }
+.mb-4 { margin-bottom: 16px; }
+.gap-4 { gap: 16px; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.text-sm { font-size: 12px; }
+.text-muted { color: #6b7280; }
+.bg-surface { background: #ffffff; }
+
+@media (max-width: 1024px) {
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; }
+  .content-container { padding: 24px; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .content-container { padding: 16px; }
+  .section-title { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+<!-- 左侧导航 -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">&#127807;</div>
+      <div>诺水河保护区<br><span style="font-size:12px;font-weight:400;color:#6b7280;">UI设计规范</span></div>
+    </div>
+    <div class="sub-title">综合管理平台 · PC + 移动端</div>
+  </div>
+  <ul class="nav-menu">
+    <li><a href="#overview" class="active">项目概述</a></li>
+    <li class="nav-section">基础规范</li>
+    <li><a href="#colors">色彩系统</a></li>
+    <li><a href="#typography">字体规范</a></li>
+    <li><a href="#layout">布局系统</a></li>
+    <li class="nav-section">组件</li>
+    <li><a href="#components">组件库</a></li>
+    <li><a href="#icons">图标规范</a></li>
+    <li class="nav-section">交互</li>
+    <li><a href="#animation">动效规范</a></li>
+    <li><a href="#comparison">PC/移动端差异</a></li>
+  </ul>
+</aside>
+
+<!-- 主内容 -->
+<main class="main-content">
+<div class="content-container">
+
+<!-- ===== 1. 项目概述 ===== -->
+<section class="section" id="overview">
+  <h1 class="section-title">项目概述</h1>
+  <p class="section-desc">四川诺水河珍稀水生动物国家级自然保护区综合管理平台 UI 设计规范</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3 class="section-h3">项目名称</h3>
+      <p>四川诺水河珍稀水生动物国家级自然保护区综合管理平台</p>
+      <h3 class="section-h3" style="margin-top:16px;">平台构成</h3>
+      <ul style="padding-left:18px;list-style:disc;color:#6b7280;">
+        <li>PC 管理端 - 数据管理与分析中心</li>
+        <li>移动巡护 APP - 现场巡护与数据采集</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="section-h3">设计目标</h3>
+      <ul style="padding-left:18px;list-style:disc;color:#6b7280;">
+        <li>统一 PC 端与移动端的视觉语言</li>
+        <li>建立专业、可信的保护区平台形象</li>
+        <li>提升数据可读性与操作效率</li>
+        <li>适配野外巡护的恶劣使用环境</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="section-h3">适用范围</h3>
+  <div class="component-demo">
+    <div class="demo-row">
+      <span class="tag tag-success">Web 应用</span>
+      <span class="tag tag-info">PC 管理端</span>
+      <span class="tag tag-info">移动端 Web</span>
+      <span class="tag tag-warning">原生 APP</span>
+      <span class="tag tag-info">数据可视化</span>
+      <span class="tag tag-info">GIS 地图</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 2. 色彩系统 ===== -->
+<section class="section" id="colors">
+  <h1 class="section-title">色彩系统</h1>
+  <p class="section-desc">以生态绿和科技蓝为核心，构建专业、自然的视觉基调</p>
+
+  <h2 class="section-subtitle">主色与辅色</h2>
+  <div class="color-palette">
+    <div class="color-item">
+      <div class="color-block" style="background:#2D7D46;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">主色</span></div>
+      <div class="color-info">
+        <div class="color-hex">#2D7D46</div>
+        <div class="color-name">生态绿</div>
+        <div class="color-usage">品牌主色、导航、核心按钮、积极状态、生态评价"优"</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#1B5E8C;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">辅色</span></div>
+      <div class="color-info">
+        <div class="color-hex">#1B5E8C</div>
+        <div class="color-name">科技蓝</div>
+        <div class="color-usage">数据图表、科技模块、链接、信息提示、辅助按钮</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">语义色</h2>
+  <div class="color-palette">
+    <div class="color-item">
+      <div class="color-block" style="background:#7CB342;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">成功</span></div>
+      <div class="color-info">
+        <div class="color-hex">#7CB342</div>
+        <div class="color-name">成功绿</div>
+        <div class="color-usage">操作成功、在线状态、正向数据、生态评价"良"</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#FBC02D;"><span style="color:rgba(0,0,0,0.4);font-size:11px;">警告</span></div>
+      <div class="color-info">
+        <div class="color-hex">#FBC02D</div>
+        <div class="color-name">警示黄</div>
+        <div class="color-usage">警告提示、待处理事项、异常数据、生态评价"中"</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#C62828;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">危险</span></div>
+      <div class="color-info">
+        <div class="color-hex">#C62828</div>
+        <div class="color-name">危险红</div>
+        <div class="color-usage">删除操作、错误提示、离线状态、生态评价"极差"</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#1B5E8C;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">信息</span></div>
+      <div class="color-info">
+        <div class="color-hex">#1B5E8C</div>
+        <div class="color-name">信息蓝</div>
+        <div class="color-usage">消息通知、帮助提示、信息标签</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">五色生态评价色</h2>
+  <div class="color-palette">
+    <div class="color-item">
+      <div class="color-block" style="background:#2D7D46;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">优</span></div>
+      <div class="color-info">
+        <div class="color-hex">#2D7D46</div>
+        <div class="color-name">优</div>
+        <div class="color-usage">生态环境评价最高等级</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#7CB342;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">良</span></div>
+      <div class="color-info">
+        <div class="color-hex">#7CB342</div>
+        <div class="color-name">良</div>
+        <div class="color-usage">生态环境评价良好等级</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#FBC02D;"><span style="color:rgba(0,0,0,0.4);font-size:11px;">中</span></div>
+      <div class="color-info">
+        <div class="color-hex">#FBC02D</div>
+        <div class="color-name">中</div>
+        <div class="color-usage">生态环境评价中等等级</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#F57C00;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">差</span></div>
+      <div class="color-info">
+        <div class="color-hex">#F57C00</div>
+        <div class="color-name">差</div>
+        <div class="color-usage">生态环境评价较差等级</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#C62828;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">极差</span></div>
+      <div class="color-info">
+        <div class="color-hex">#C62828</div>
+        <div class="color-name">极差</div>
+        <div class="color-usage">生态环境评价极差等级</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">中性色板</h2>
+  <div class="color-palette">
+    <div class="color-item">
+      <div class="color-block" style="background:#f5f7fa;border-bottom:1px solid #e5e9f0;"><span style="color:#6b7280;font-size:11px;">背景</span></div>
+      <div class="color-info">
+        <div class="color-hex">#f5f7fa</div>
+        <div class="color-name">页面背景</div>
+        <div class="color-usage">全局页面底色、表格隔行背景</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#ffffff;border:1px solid #e5e9f0;"><span style="color:#6b7280;font-size:11px;">表面</span></div>
+      <div class="color-info">
+        <div class="color-hex">#ffffff</div>
+        <div class="color-name">表面色</div>
+        <div class="color-usage">卡片、弹窗、面板、浮层背景</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#1f2937;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">文字</span></div>
+      <div class="color-info">
+        <div class="color-hex">#1f2937</div>
+        <div class="color-name">主要文字</div>
+        <div class="color-usage">标题、正文、核心数据</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#6b7280;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">弱化</span></div>
+      <div class="color-info">
+        <div class="color-hex">#6b7280</div>
+        <div class="color-name">次要文字</div>
+        <div class="color-usage">说明文字、占位符、禁用态文字</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#e5e9f0;"><span style="color:#6b7280;font-size:11px;">边框</span></div>
+      <div class="color-info">
+        <div class="color-hex">#e5e9f0</div>
+        <div class="color-name">边框分隔线</div>
+        <div class="color-usage">卡片边框、表格线、分隔线</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 3. 字体规范 ===== -->
+<section class="section" id="typography">
+  <h1 class="section-title">字体规范</h1>
+  <p class="section-desc">统一的字体栈与层级系统，确保跨平台一致性</p>
+
+  <h2 class="section-subtitle">字体栈</h2>
+  <div class="component-demo">
+    <code style="display:block;padding:12px;background:#f9fafb;border:1px solid #e5e9f0;border-radius:6px;font-family:'SF Mono',monospace;font-size:13px;color:#374151;">
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    </code>
+  </div>
+
+  <h2 class="section-subtitle">字体层级</h2>
+  <div class="type-specimen">
+    <div class="type-row">
+      <div class="type-label">H1 页面标题</div>
+      <div class="type-sample" style="font-size:28px;font-weight:600;line-height:1.3;">页面主标题 / 28px / Semibold</div>
+      <div class="type-meta">28px / 600 / 1.3</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">H2 区块标题</div>
+      <div class="type-sample" style="font-size:22px;font-weight:600;line-height:1.3;">区块标题 / 22px / Semibold</div>
+      <div class="type-meta">22px / 600 / 1.3</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">H3 小标题</div>
+      <div class="type-sample" style="font-size:17px;font-weight:600;line-height:1.3;">小标题 / 17px / Semibold</div>
+      <div class="type-meta">17px / 600 / 1.3</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">正文</div>
+      <div class="type-sample" style="font-size:14px;font-weight:400;line-height:1.6;">正文内容 / 14px / Regular，适用于绝大多数说明性文本与表单标签</div>
+      <div class="type-meta">14px / 400 / 1.6</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">辅助文字</div>
+      <div class="type-sample" style="font-size:12px;font-weight:400;line-height:1.6;">辅助说明 / 12px / Regular，适用于注释、时间戳、次要信息</div>
+      <div class="type-meta">12px / 400 / 1.6</div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">数据展示</div>
+      <div class="type-sample" style="font-size:24px;font-weight:700;line-height:1.3;">1,248</div>
+      <div class="type-meta">24px / 700 / 1.3</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 4. 布局系统 ===== -->
+<section class="section" id="layout">
+  <h1 class="section-title">布局系统</h1>
+  <p class="section-desc">PC 端与移动端统一的布局逻辑与响应式策略</p>
+
+  <h2 class="section-subtitle">PC 端布局</h2>
+  <div class="layout-demo">
+    <div class="layout-pc-demo">
+      <div class="layout-pc-sidebar">导航<br><br>240px</div>
+      <div class="layout-pc-header">顶部工具栏 56px</div>
+      <div class="layout-pc-content">
+        <div class="layout-pc-grid-line">内容区 min-width: 960px</div>
+      </div>
+    </div>
+  </div>
+  <div class="component-demo" style="margin-top:16px;">
+    <p><strong>结构参数</strong></p>
+    <ul style="padding-left:18px;list-style:disc;color:#6b7280;margin-top:8px;">
+      <li>左侧导航栏：固定宽度 <strong>240px</strong></li>
+      <li>顶部工具栏：固定高度 <strong>56px</strong></li>
+      <li>内容区最小宽度：<strong>960px</strong></li>
+      <li>内容区内边距：<strong>24px</strong></li>
+      <li>组件间距：<strong>24px</strong></li>
+    </ul>
+  </div>
+
+  <h2 class="section-subtitle">移动端布局</h2>
+  <div class="layout-demo" style="display:flex;justify-content:center;padding:24px;">
+    <div class="layout-mobile-demo">
+      <div class="layout-mobile-screen">
+        <div class="layout-mobile-header">顶部状态栏</div>
+        <div class="layout-mobile-body">
+          内容区域<br><br>
+          安全区适配<br>
+          单手操作热区<br>
+          （底部 1/3 屏幕）
+        </div>
+        <div class="layout-mobile-safe"></div>
+        <div class="layout-mobile-tabbar">
+          <span class="tab-active">首页</span>
+          <span>巡护</span>
+          <span>监测</span>
+          <span>我的</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="component-demo" style="margin-top:16px;">
+    <p><strong>结构参数</strong></p>
+    <ul style="padding-left:18px;list-style:disc;color:#6b7280;margin-top:8px;">
+      <li>底部 Tab 导航：固定高度 <strong>52px + 安全区</strong></li>
+      <li>页面边距：<strong>16px</strong></li>
+      <li>组件间距：<strong>16px</strong></li>
+      <li>单手操作热区：屏幕底部 <strong>1/3</strong> 区域放置高频操作</li>
+      <li>安全区适配：适配 iOS / Android 刘海与手势条</li>
+    </ul>
+  </div>
+
+  <h2 class="section-subtitle">响应式断点</h2>
+  <div class="component-demo">
+    <table class="demo-table">
+      <thead><tr><th>断点名</th><th>宽度</th><th>目标设备</th></tr></thead>
+      <tbody>
+        <tr><td>超大屏</td><td>1920px</td><td>大屏监控站、数据中心</td></tr>
+        <tr><td>大屏</td><td>1440px</td><td>桌面显示器</td></tr>
+        <tr><td>中屏</td><td>1280px</td><td>笔记本显示器</td></tr>
+        <tr><td>小屏</td><td>1024px</td><td>平板横屏、小尺寸笔记本</td></tr>
+        <tr><td>平板</td><td>768px</td><td>平板竖屏</td></tr>
+        <tr><td>手机</td><td>375px</td><td>移动端基准</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== 5. 组件库 ===== -->
+<section class="section" id="components">
+  <h1 class="section-title">组件库</h1>
+  <p class="section-desc">基于色彩系统构建的统一组件，每个组件均提供视觉展示 Demo</p>
+
+  <h2 class="section-subtitle">按钮 Button</h2>
+  <div class="component-demo">
+    <div class="demo-row"><span class="demo-label">主要</span>
+      <button class="btn btn-primary">默认</button>
+      <button class="btn btn-primary btn-sm">小尺寸</button>
+      <button class="btn btn-primary btn-lg">大尺寸</button>
+      <button class="btn btn-primary" disabled>禁用</button>
+    </div>
+    <div class="demo-row"><span class="demo-label">次要</span>
+      <button class="btn btn-secondary">默认</button>
+      <button class="btn btn-secondary btn-sm">小尺寸</button>
+      <button class="btn btn-secondary btn-lg">大尺寸</button>
+      <button class="btn btn-secondary" disabled>禁用</button>
+    </div>
+    <div class="demo-row"><span class="demo-label">文字</span>
+      <button class="btn btn-text">文字按钮</button>
+      <button class="btn btn-text btn-sm">小尺寸</button>
+      <button class="btn btn-text" disabled>禁用</button>
+    </div>
+    <div class="demo-row"><span class="demo-label">危险</span>
+      <button class="btn btn-danger">删除</button>
+      <button class="btn btn-danger btn-sm">小尺寸</button>
+      <button class="btn btn-danger btn-lg">大尺寸</button>
+      <button class="btn btn-danger" disabled>禁用</button>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">表单 Form</h2>
+  <div class="component-demo">
+    <div class="grid-2">
+      <div>
+        <div class="form-group">
+          <label class="form-label">输入框 - 默认</label>
+          <input type="text" class="form-input" placeholder="请输入内容" value="正常状态">
+        </div>
+        <div class="form-group">
+          <label class="form-label">输入框 - 聚焦</label>
+          <input type="text" class="form-input" placeholder="请输入内容" value="聚焦状态" style="border-color:#2D7D46;box-shadow:0 0 0 3px rgba(45,125,70,0.1);">
+        </div>
+        <div class="form-group">
+          <label class="form-label">输入框 - 错误</label>
+          <input type="text" class="form-input error" value="错误状态">
+          <div class="form-error-msg">输入格式不正确</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">输入框 - 禁用</label>
+          <input type="text" class="form-input" value="禁用状态" disabled>
+        </div>
+      </div>
+      <div>
+        <div class="form-group">
+          <label class="form-label">下拉选择</label>
+          <select class="form-select">
+            <option>请选择生态评价等级</option>
+            <option>优</option>
+            <option>良</option>
+            <option>中</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">文本域</label>
+          <textarea class="form-textarea" placeholder="请输入巡护记录..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">表格 Table</h2>
+  <div class="component-demo">
+    <table class="demo-table">
+      <thead>
+        <tr><th>监测点</th><th>物种</th><th>数量</th><th>评价</th><th>时间</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>NH-001</td><td>大鲵</td><td>12</td><td><span class="tag tag-eco-a">优</span></td><td>2025-06-20</td></tr>
+        <tr><td>NH-002</td><td>胭脂鱼</td><td>5</td><td><span class="tag tag-eco-b">良</span></td><td>2025-06-19</td></tr>
+        <tr class="selected"><td>NH-003</td><td>重口裂腹鱼</td><td>8</td><td><span class="tag tag-eco-c">中</span></td><td>2025-06-18</td></tr>
+        <tr><td>NH-004</td><td>中华倒刺鲃</td><td>3</td><td><span class="tag tag-eco-d">差</span></td><td>2025-06-17</td></tr>
+        <tr><td>NH-005</td><td>白甲鱼</td><td>1</td><td><span class="tag tag-eco-e">极差</span></td><td>2025-06-16</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-subtitle">标签 Tag</h2>
+  <div class="component-demo">
+    <div class="demo-row"><span class="demo-label">语义标签</span>
+      <span class="tag tag-success">成功</span>
+      <span class="tag tag-warning">警告</span>
+      <span class="tag tag-error">错误</span>
+      <span class="tag tag-info">信息</span>
+    </div>
+    <div class="demo-row"><span class="demo-label">生态评价</span>
+      <span class="tag tag-eco-a">优</span>
+      <span class="tag tag-eco-b">良</span>
+      <span class="tag tag-eco-c">中</span>
+      <span class="tag tag-eco-d">差</span>
+      <span class="tag tag-eco-e">极差</span>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">卡片 Card</h2>
+  <div class="grid-3">
+    <div class="card card-data">
+      <div class="card-label">监测物种总数</div>
+      <div class="card-value">128</div>
+      <div class="card-trend">+12% 较上月</div>
+    </div>
+    <div class="card card-data">
+      <div class="card-label">巡护里程 (km)</div>
+      <div class="card-value">2,456</div>
+      <div class="card-trend">+8% 较上月</div>
+    </div>
+    <div class="card card-data card-stat">
+      <div class="card-label">生态综合指数</div>
+      <div class="card-value">87.5</div>
+      <div class="card-trend">等级: 良</div>
+    </div>
+  </div>
+  <div class="component-demo mt-4">
+    <div class="card">
+      <h3 class="section-h3" style="margin-top:0;">信息卡片</h3>
+      <p style="color:#6b7280;">用于展示保护区的详细说明、通知公告、政策法规等内容。卡片内可包含标题、正文、操作按钮等组合元素。</p>
+      <div style="margin-top:12px;">
+        <button class="btn btn-primary btn-sm">查看详情</button>
+        <button class="btn btn-text btn-sm">编辑</button>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">导航 Navigation</h2>
+  <div class="grid-2">
+    <div class="component-demo">
+      <p class="demo-label" style="width:auto;margin-bottom:12px;">PC 侧边栏导航</p>
+      <div class="demo-nav-sidebar">
+        <div class="nav-item active"><span class="nav-icon">&#127759;</span> 首页</div>
+        <div class="nav-item"><span class="nav-icon">&#128506;</span> 地图监测</div>
+        <div class="nav-item"><span class="nav-icon">&#128295;</span> 巡护管理</div>
+        <div class="nav-item"><span class="nav-icon">&#128200;</span> 数据分析</div>
+        <div class="nav-item"><span class="nav-icon">&#9881;</span> 系统设置</div>
+      </div>
+    </div>
+    <div class="component-demo">
+      <p class="demo-label" style="width:auto;margin-bottom:12px;">移动端底部 Tab</p>
+      <div style="border:1px solid #e5e9f0;border-radius:8px;overflow:hidden;max-width:280px;margin:0 auto;">
+        <div style="padding:40px 12px;text-align:center;color:#9ca3af;font-size:12px;">页面内容区域</div>
+        <div class="demo-tabbar">
+          <div class="tab-item active"><span class="tab-icon">&#127968;</span><span>首页</span></div>
+          <div class="tab-item"><span class="tab-icon">&#128506;</span><span>地图</span></div>
+          <div class="tab-item"><span class="tab-icon">&#128248;</span><span>巡护</span></div>
+          <div class="tab-item"><span class="tab-icon">&#128100;</span><span>我的</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="component-demo mt-4">
+    <p class="demo-label" style="width:auto;margin-bottom:12px;">面包屑 Breadcrumb</p>
+    <div class="breadcrumb">
+      <a href="#">首页</a><span class="sep">/</span>
+      <a href="#">巡护管理</a><span class="sep">/</span>
+      <a href="#">巡护记录</a><span class="sep">/</span>
+      <span style="color:#1f2937;">NH-2025-0618</span>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">弹窗与抽屉 Modal / Drawer</h2>
+  <div class="grid-2">
+    <div class="component-demo" style="padding:0;overflow:hidden;">
+      <div class="modal-overlay">
+        <div class="modal-box">
+          <div class="modal-title">确认删除？</div>
+          <div class="modal-body">删除后数据将无法恢复，请确认是否继续操作。</div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm">取消</button>
+            <button class="btn btn-danger btn-sm">确认删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="component-demo" style="padding:0;overflow:hidden;">
+      <div class="drawer-demo">
+        <div class="drawer-overlay"></div>
+        <div class="drawer-panel">
+          <div class="drawer-title">巡护详情</div>
+          <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">查看巡护任务的详细信息与执行记录。</p>
+          <div style="height:4px;background:#e5e9f0;border-radius:2px;margin-bottom:8px;"><div style="width:60%;height:100%;background:#2D7D46;border-radius:2px;"></div></div>
+          <p style="font-size:12px;color:#9ca3af;">完成进度 60%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">图表配色 Chart Palette</h2>
+  <div class="component-demo">
+    <div class="chart-bar">
+      <div class="chart-bar-item" style="height:80%;background:#2D7D46;"></div>
+      <div class="chart-bar-item" style="height:65%;background:#1B5E8C;"></div>
+      <div class="chart-bar-item" style="height:45%;background:#7CB342;"></div>
+      <div class="chart-bar-item" style="height:30%;background:#FBC02D;"></div>
+      <div class="chart-bar-item" style="height:55%;background:#4A90D9;"></div>
+      <div class="chart-bar-item" style="height:40%;background:#F57C00;"></div>
+      <div class="chart-bar-item" style="height:25%;background:#C62828;"></div>
+    </div>
+    <div class="chart-legend">
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#2D7D46;"></div>主色绿</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#1B5E8C;"></div>科技蓝</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#7CB342;"></div>成功绿</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#FBC02D;"></div>警示黄</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4A90D9;"></div>水域蓝</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#F57C00;"></div>预警橙</div>
+      <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#C62828;"></div>危险红</div>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">地图图层色 Map Layers</h2>
+  <div class="color-palette">
+    <div class="color-item">
+      <div class="color-block" style="background:#4A90D9;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">水域</span></div>
+      <div class="color-info">
+        <div class="color-hex">#4A90D9</div>
+        <div class="color-name">水域</div>
+        <div class="color-usage">河流、湖泊、水库等水体</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#7CB342;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">植被</span></div>
+      <div class="color-info">
+        <div class="color-hex">#7CB342</div>
+        <div class="color-name">植被</div>
+        <div class="color-usage">森林、草地、湿地植被覆盖区</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#F5A623;"><span style="color:rgba(0,0,0,0.4);font-size:11px;">道路</span></div>
+      <div class="color-info">
+        <div class="color-hex">#F5A623</div>
+        <div class="color-name">道路</div>
+        <div class="color-usage">公路、巡护步道、交通线</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#8B572A;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">建筑</span></div>
+      <div class="color-info">
+        <div class="color-hex">#8B572A</div>
+        <div class="color-name">建筑</div>
+        <div class="color-usage">保护站、监测站、居民点</div>
+      </div>
+    </div>
+    <div class="color-item">
+      <div class="color-block" style="background:#C62828;"><span style="color:rgba(255,255,255,0.6);font-size:11px;">边界</span></div>
+      <div class="color-info">
+        <div class="color-hex">#C62828</div>
+        <div class="color-name">保护区边界</div>
+        <div class="color-usage">核心区、缓冲区、实验区界线</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 6. 图标规范 ===== -->
+<section class="section" id="icons">
+  <h1 class="section-title">图标规范</h1>
+  <p class="section-desc">统一的线性图标风格，保证跨平台识别一致性</p>
+
+  <h2 class="section-subtitle">图标尺寸</h2>
+  <div class="component-demo">
+    <div class="demo-row"><span class="demo-label">PC 端</span>
+      <span class="tag tag-info">16px</span>
+      <span class="tag tag-info">20px</span>
+      <span class="tag tag-info">24px</span>
+      <span style="color:#6b7280;font-size:12px;margin-left:8px;">用于按钮、表格、导航</span>
+    </div>
+    <div class="demo-row"><span class="demo-label">移动端</span>
+      <span class="tag tag-info">24px</span>
+      <span class="tag tag-info">28px</span>
+      <span class="tag tag-info">32px</span>
+      <span style="color:#6b7280;font-size:12px;margin-left:8px;">用于 Tab 栏、功能入口、操作按钮</span>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">图标风格</h2>
+  <div class="component-demo">
+    <div style="display:flex;gap:40px;align-items:center;">
+      <div style="text-align:center;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2D7D46" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path>
+        </svg>
+        <div style="font-size:12px;color:#6b7280;margin-top:8px;">线性风格</div>
+      </div>
+      <div style="color:#6b7280;font-size:13px;line-height:1.8;">
+        <p><strong>描边宽度：</strong>2px</p>
+        <p><strong>端点样式：</strong>圆角 (Round)</p>
+        <p><strong>连接样式：</strong>圆角 (Round)</p>
+        <p><strong>填充：</strong>无填充 (仅描边)</p>
+        <p><strong>视觉大小：</strong>占图标区域的 70%~80%</p>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">核心图标清单</h2>
+  <div class="component-demo">
+    <div class="icon-grid">
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        </div>
+        <div class="icon-name">地图</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+        </div>
+        <div class="icon-name">巡护</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+        <div class="icon-name">监测</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </div>
+        <div class="icon-name">分析</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </div>
+        <div class="icon-name">设置</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
+        <div class="icon-name">用户</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div class="icon-name">告警</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        </div>
+        <div class="icon-name">轨迹</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+        </div>
+        <div class="icon-name">拍照</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><path d="M9 11H1l8-8v8zm4 0V3l8 8h-8z"></path><path d="M12 21a9 9 0 0 0 9-9h-2a7 7 0 0 1-7 7v2z"></path></svg>
+        </div>
+        <div class="icon-name">识别</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        </div>
+        <div class="icon-name">同步</div>
+      </div>
+      <div class="icon-item">
+        <div class="icon-visual">
+          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        </div>
+        <div class="icon-name">离线</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 7. 动效规范 ===== -->
+<section class="section" id="animation">
+  <h1 class="section-title">动效规范</h1>
+  <p class="section-desc">清晰、克制的动效系统，提升交互反馈而不干扰用户</p>
+
+  <h2 class="section-subtitle">过渡时长</h2>
+  <div class="component-demo">
+    <div class="demo-row">
+      <span class="demo-label">150ms</span>
+      <span class="tag tag-success">快速</span>
+      <span style="color:#6b7280;font-size:13px;">Hover、按钮点击、小状态切换</span>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">250ms</span>
+      <span class="tag tag-info">常规</span>
+      <span style="color:#6b7280;font-size:13px;">面板切换、选项卡、展开/收起</span>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">350ms</span>
+      <span class="tag tag-warning">缓慢</span>
+      <span style="color:#6b7280;font-size:13px;">弹窗入场、抽屉滑出、页面转场</span>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">缓动函数</h2>
+  <div class="component-demo">
+    <div class="demo-row">
+      <span class="demo-label">ease-out</span>
+      <span style="color:#6b7280;font-size:13px;">用于元素入场（弹窗、抽屉、通知）</span>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">ease-in-out</span>
+      <span style="color:#6b7280;font-size:13px;">用于状态切换（开关、展开、折叠）</span>
+    </div>
+  </div>
+
+  <h2 class="section-subtitle">移动端转场</h2>
+  <div class="grid-3">
+    <div class="anim-demo">
+      <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">底部滑入（表单页）</p>
+      <div style="height:80px;background:#f5f7fa;border-radius:6px;position:relative;overflow:hidden;">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:60px;background:#fff;border-top:1px solid #e5e9f0;border-radius:8px 8px 0 0;padding:8px;font-size:11px;animation:drawerEnter 2s ease-out infinite alternate;">
+          表单内容
+        </div>
+      </div>
+    </div>
+    <div class="anim-demo">
+      <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">全屏推进（详情页）</p>
+      <div style="height:80px;background:#f5f7fa;border-radius:6px;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:#fff;animation:slideEnter 2s ease-out infinite alternate;padding:8px;font-size:11px;">
+          详情内容
+        </div>
+      </div>
+    </div>
+    <div class="anim-demo">
+      <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">淡入（弹窗）</p>
+      <div style="height:80px;background:#f5f7fa;border-radius:6px;display:flex;align-items:center;justify-content:center;">
+        <div class="anim-box anim-modal-enter" style="width:80px;height:48px;font-size:11px;">弹窗</div>
+      </div>
+    </div>
+  </div>
+  <style>
+    @keyframes slideEnter { from { transform: translateX(40px); opacity:0; } to { transform: translateX(0); opacity:1; } }
+  </style>
+
+  <h2 class="section-subtitle">交互演示</h2>
+  <div class="grid-2">
+    <div class="anim-demo">
+      <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">Hover 缩放（150ms ease-out）</p>
+      <div class="anim-box anim-hover">Hover 我</div>
+    </div>
+    <div class="anim-demo">
+      <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">切换位移（250ms ease-in-out）</p>
+      <div class="anim-box anim-switch">切换</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 8. PC/移动端差异对照 ===== -->
+<section class="section" id="comparison">
+  <h1 class="section-title">PC / 移动端差异对照</h1>
+  <p class="section-desc">同一组件在 PC 端与移动端的关键差异对比</p>
+
+  <div class="component-demo" style="overflow-x:auto;">
+    <table class="compare-table">
+      <thead>
+        <tr><th class="col-component">组件</th><th>PC 端</th><th>移动端</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-component">导航</td>
+          <td>左侧固定侧边栏，240px 宽，图标+文字，可展开收起二级菜单</td>
+          <td>底部 Tab 栏，52px 高，4~5 个入口，图标为主+文字辅助，支持中间突出按钮</td>
+        </tr>
+        <tr>
+          <td class="col-component">按钮</td>
+          <td>默认高度 36px，支持悬停态，可并排显示多个操作按钮</td>
+          <td>默认高度 44px（保证点击区域），底部悬浮主按钮，操作按钮常以图标形式呈现</td>
+        </tr>
+        <tr>
+          <td class="col-component">表单</td>
+          <td>多列布局，标签左对齐，输入框 320px 宽，支持 Tab 键切换</td>
+          <td>单列全宽布局，标签顶对齐，输入框 100% 宽度，唤起系统键盘适配</td>
+        </tr>
+        <tr>
+          <td class="col-component">表格</td>
+          <td>标准行高 48px，支持列排序、筛选、批量操作、固定列</td>
+          <td>卡片列表替代表格，或横向滚动表格，行高 64px，支持左滑操作</td>
+        </tr>
+        <tr>
+          <td class="col-component">弹窗</td>
+          <td>居中弹窗，最大宽度 480px，点击遮罩可关闭，支持拖拽</td>
+          <td>底部上滑的 ActionSheet 或全屏弹窗，支持手势下滑关闭</td>
+        </tr>
+        <tr>
+          <td class="col-component">搜索</td>
+          <td>顶部工具栏嵌入，支持回车触发，展示搜索历史下拉</td>
+          <td>独立搜索页，支持扫码识别、语音输入、实时搜索建议</td>
+        </tr>
+        <tr>
+          <td class="col-component">地图</td>
+          <td>大屏全量展示，鼠标滚轮缩放，右键菜单，多图层叠加控制面板</td>
+          <td>手势缩放/旋转，定位按钮常驻，图层切换底部弹出，支持离线底图</td>
+        </tr>
+        <tr>
+          <td class="col-component">拍照</td>
+          <td>上传本地图片，支持批量拖拽，图片预览侧边栏</td>
+          <td>调用系统相机，现场拍摄+水印定位，支持连拍与快速标注</td>
+        </tr>
+        <tr>
+          <td class="col-component">分页</td>
+          <td>页码分页器，可跳转页码，每页条数选择</td>
+          <td>无限滚动加载，底部加载提示，支持下拉刷新</td>
+        </tr>
+        <tr>
+          <td class="col-component">通知</td>
+          <td>右上角 Badge + 消息中心弹层，支持标记已读</td>
+          <td>系统推送 + 应用内红点，消息列表页全屏展示</td>
+        </tr>
+        <tr>
+          <td class="col-component">离线</td>
+          <td>弱提示，自动重连机制，数据实时同步</td>
+          <td>强提示（顶部横幅），本地队列存储，手动/自动同步切换</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 页脚 -->
+<div style="border-top:1px solid #e5e9f0;padding-top:24px;margin-top:64px;text-align:center;color:#9ca3af;font-size:12px;">
+  四川诺水河珍稀水生动物国家级自然保护区综合管理平台 · UI 设计规范 v1.0
+</div>
+
+</div>
+</main>
+</div>
+
+<script>
+// 导航高亮
+const navLinks = document.querySelectorAll('.nav-menu a');
+const sections = document.querySelectorAll('.section');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(sec => {
+    const top = window.scrollY + 100;
+    if (top >= sec.offsetTop) current = sec.getAttribute('id');
+  });
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

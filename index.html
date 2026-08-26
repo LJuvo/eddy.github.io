@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L7 + Cesium 双地图底板系统</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Cesium.js"></script>
+    <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.116/Build/Cesium/Widgets/widgets.css">
+    <script src="https://unpkg.com/@antv/l7@2.18.0/dist/l7.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        #mapContainer {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        #l7Container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            display: none;
+        }
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            min-width: 260px;
+            z-index: 100;
+        }
+        .toolbar h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .map-switcher {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .btn-switch {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+            color: #555;
+        }
+        .btn-switch:hover {
+            border-color: #1e88e5;
+            color: #1e88e5;
+        }
+        .btn-switch.active {
+            background: #1e88e5;
+            color: white;
+            border-color: #1e88e5;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #1e88e5;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #1e88e5, #1565c0);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+            margin-top: 10px;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        .quick-locate {
+            margin: 15px 0;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .quick-label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .btn-city {
+            display: inline-block;
+            width: auto;
+            padding: 8px 16px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            background: #f0f7ff;
+            color: #1e88e5;
+            font-size: 13px;
+            border: 1px solid #bbdefb;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .btn-city:hover {
+            background: #1e88e5;
+            color: white;
+            border-color: #1e88e5;
+        }
+        .status-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 12px;
+            z-index: 100;
+        }
+        .coord-display {
+            margin-bottom: 5px;
+        }
+        .coord-label {
+            display: inline-block;
+            width: 60px;
+            color: #aaa;
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+            z-index: 100;
+        }
+        .legend h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 8px;
+        }
+        .map-mode-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            z-index: 100;
+        }
+        .map-mode-indicator .mode-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .mode-icon.l7 {
+            background: linear-gradient(135deg, #1e88e5, #1565c0);
+        }
+        .mode-icon.cesium {
+            background: linear-gradient(135deg, #4caf50, #43a047);
+        }
+    </style>
+</head>
+<body>
+    <div id="mapContainer">
+        <div id="l7Container"></div>
+        <div id="cesiumContainer"></div>
+    </div>
+
+    <div class="toolbar">
+        <h2>📍 地图控制</h2>
+        
+        <div class="map-switcher">
+            <button class="btn-switch active" id="btnL7" onclick="switchMap('l7')">2D 地图</button>
+            <button class="btn-switch" id="btnCesium" onclick="switchMap('cesium')">3D 地图</button>
+        </div>
+
+        <div class="form-group">
+            <label>经度 (Longitude)</label>
+            <input type="number" id="lonInput" placeholder="请输入经度" step="0.0001" value="116.3975">
+        </div>
+        <div class="form-group">
+            <label>纬度 (Latitude)</label>
+            <input type="number" id="latInput" placeholder="请输入纬度" step="0.0001" value="39.9087">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>高度 (Height)</label>
+                <input type="number" id="heightInput" placeholder="请输入高度" value="5000">
+            </div>
+            <div class="form-group">
+                <label>视角 (Heading)</label>
+                <input type="number" id="headingInput" placeholder="请输入视角" value="0">
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="locate()">定位</button>
+        
+        <div class="quick-locate">
+            <span class="quick-label">快捷定位:</span>
+            <button class="btn-city" onclick="quickLocate('beijing')">北京</button>
+            <button class="btn-city" onclick="quickLocate('shanghai')">上海</button>
+            <button class="btn-city" onclick="quickLocate('chengdu')">成都</button>
+        </div>
+        <button class="btn btn-secondary" onclick="addMarker()">添加标记点</button>
+        <button class="btn btn-secondary" onclick="clearMarkers()">清除标记</button>
+    </div>
+
+    <div class="status-bar">
+        <div class="coord-display">
+            <span class="coord-label">经度:</span>
+            <span id="currentLon">--</span>
+        </div>
+        <div class="coord-display">
+            <span class="coord-label">纬度:</span>
+            <span id="currentLat">--</span>
+        </div>
+        <div class="coord-display">
+            <span class="coord-label">高度:</span>
+            <span id="currentHeight">--</span>
+        </div>
+    </div>
+
+    <div class="legend">
+        <h3>图例</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background: rgba(255, 0, 0, 0.8);"></div>
+            <span>定位标记点</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: rgba(0, 128, 255, 0.8);"></div>
+            <span>用户添加标记</span>
+        </div>
+    </div>
+
+    <div class="map-mode-indicator" id="mapModeIndicator">
+        <span class="mode-icon l7"></span>
+        <span id="modeText">2D 地图模式 (L7)</span>
+    </div>
+
+    <script>
+        const terrainBaseUrl = 'https://shapezo.gisbox.com.cn/api/v1/gis/terrain';
+        const imageryUrl = 'https://shapezo.gisbox.com.cn/api/v1/gis/imagery-tile/{z}/{x}/{y}';
+
+        const cityPresets = {
+            beijing: { name: '北京', lon: 116.3975, lat: 39.9087, height: 5000, heading: 0 },
+            shanghai: { name: '上海', lon: 121.4737, lat: 31.2304, height: 5000, heading: 0 },
+            chengdu: { name: '成都', lon: 104.0668, lat: 30.5728, height: 5000, heading: 0 }
+        };
+
+        let currentMapMode = 'l7';
+        let l7Map = null;
+        let cesiumViewer = null;
+        let l7Markers = [];
+        let cesiumMarkers = [];
+        let currentPositionMarker = null;
+
+        async function initL7Map() {
+            l7Map = new L7.Map({
+                container: 'l7Container',
+                center: [116.3975, 39.9087],
+                zoom: 10,
+                minZoom: 0,
+                maxZoom: 18
+            });
+
+            l7Map.addLayer(new L7.TileLayer({
+                type: 'TileLayer',
+                source: new L7.XYZTileSource({
+                    url: imageryUrl,
+                    attribution: 'GISBOX Imagery'
+                })
+            }));
+
+            l7Map.on('mousemove', (e) => {
+                if (currentMapMode !== 'l7') return;
+                const { lng, lat } = e.lngLat;
+                document.getElementById('currentLon').textContent = lng.toFixed(6);
+                document.getElementById('currentLat').textContent = lat.toFixed(6);
+                document.getElementById('currentHeight').textContent = '0m';
+            });
+
+            l7Map.on('click', (e) => {
+                if (currentMapMode !== 'l7') return;
+                const { lng, lat } = e.lngLat;
+                document.getElementById('lonInput').value = lng.toFixed(4);
+                document.getElementById('latInput').value = lat.toFixed(4);
+            });
+        }
+
+        async function initCesiumViewer() {
+            const terrainProvider = await Cesium.CesiumTerrainProvider.fromUrl(terrainBaseUrl, {
+                requestVertexNormals: true,
+                requestWaterMask: true
+            });
+
+            cesiumViewer = new Cesium.Viewer('cesiumContainer', {
+                animation: true,
+                baseLayerPicker: false,
+                fullscreenButton: true,
+                geocoder: false,
+                homeButton: true,
+                infoBox: false,
+                sceneModePicker: true,
+                selectionIndicator: false,
+                timeline: true,
+                navigationHelpButton: true,
+                navigationInstructionsInitiallyVisible: false,
+                terrainProvider: terrainProvider,
+                imageryProvider: false
+            });
+
+            cesiumViewer.imageryLayers.addImageryProvider(
+                new Cesium.UrlTemplateImageryProvider({
+                    url: imageryUrl,
+                    maximumLevel: 18,
+                    minimumLevel: 0,
+                    credit: 'GISBOX Terrain & Imagery',
+                    tilingScheme: new Cesium.WebMercatorTilingScheme()
+                })
+            );
+
+            cesiumViewer.scene.globe.depthTestAgainstTerrain = true;
+
+            cesiumViewer.scene.postRender.addEventListener(() => {
+                if (currentMapMode !== 'cesium') return;
+                const cameraPosition = cesiumViewer.camera.positionCartographic;
+                if (cameraPosition) {
+                    document.getElementById('currentLon').textContent = Cesium.Math.toDegrees(cameraPosition.longitude).toFixed(6);
+                    document.getElementById('currentLat').textContent = Cesium.Math.toDegrees(cameraPosition.latitude).toFixed(6);
+                    document.getElementById('currentHeight').textContent = cameraPosition.height.toFixed(2) + 'm';
+                }
+            });
+
+            cesiumViewer.screenSpaceEventHandler.setInputAction((click) => {
+                if (currentMapMode !== 'cesium') return;
+                const pickedObject = cesiumViewer.scene.pick(click.position);
+                if (pickedObject && pickedObject.id && pickedObject.id.label) {
+                    const position = pickedObject.id.position.getValue(cesiumViewer.clock.currentTime);
+                    if (position) {
+                        const cartographic = Cesium.Cartographic.fromCartesian(position);
+                        document.getElementById('lonInput').value = Cesium.Math.toDegrees(cartographic.longitude).toFixed(4);
+                        document.getElementById('latInput').value = Cesium.Math.toDegrees(cartographic.latitude).toFixed(4);
+                    }
+                }
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+            cesiumViewer.camera.setView({
+                destination: Cesium.Cartesian3.fromDegrees(116.3975, 39.9087, 10000),
+                orientation: {
+                    heading: Cesium.Math.toRadians(0),
+                    pitch: Cesium.Math.toRadians(-60),
+                    roll: 0.0
+                }
+            });
+        }
+
+        function switchMap(mode) {
+            if (currentMapMode === mode) return;
+
+            currentMapMode = mode;
+
+            document.getElementById('btnL7').classList.toggle('active', mode === 'l7');
+            document.getElementById('btnCesium').classList.toggle('active', mode === 'cesium');
+
+            const modeIndicator = document.getElementById('mapModeIndicator');
+            const modeIcon = modeIndicator.querySelector('.mode-icon');
+            const modeText = document.getElementById('modeText');
+
+            if (mode === 'l7') {
+                document.getElementById('l7Container').style.display = 'block';
+                document.getElementById('cesiumContainer').style.display = 'none';
+                modeIcon.className = 'mode-icon l7';
+                modeText.textContent = '2D 地图模式 (L7)';
+            } else {
+                document.getElementById('l7Container').style.display = 'none';
+                document.getElementById('cesiumContainer').style.display = 'block';
+                modeIcon.className = 'mode-icon cesium';
+                modeText.textContent = '3D 地图模式 (Cesium)';
+            }
+        }
+
+        function locate() {
+            const lon = parseFloat(document.getElementById('lonInput').value);
+            const lat = parseFloat(document.getElementById('latInput').value);
+            const height = parseFloat(document.getElementById('heightInput').value) || 5000;
+            const heading = parseFloat(document.getElementById('headingInput').value) || 0;
+
+            if (isNaN(lon) || isNaN(lat)) {
+                alert('请输入有效的经纬度');
+                return;
+            }
+
+            if (currentMapMode === 'l7') {
+                if (l7Map) {
+                    l7Map.flyTo([lon, lat], {
+                        zoom: 12,
+                        duration: 1.5
+                    });
+
+                    clearL7CurrentMarker();
+                    addL7Marker(lon, lat, 0, true);
+                }
+            } else {
+                if (cesiumViewer) {
+                    const destination = Cesium.Cartesian3.fromDegrees(lon, lat, height);
+
+                    cesiumViewer.camera.flyTo({
+                        destination: destination,
+                        orientation: {
+                            heading: Cesium.Math.toRadians(heading),
+                            pitch: Cesium.Math.toRadians(-45),
+                            roll: 0.0
+                        },
+                        duration: 2.0,
+                        easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+                    });
+
+                    clearCesiumCurrentMarker();
+                    addCesiumMarker(destination, Cesium.Color.RED, true);
+                }
+            }
+        }
+
+        function quickLocate(cityKey) {
+            const city = cityPresets[cityKey];
+            if (!city) return;
+
+            document.getElementById('lonInput').value = city.lon;
+            document.getElementById('latInput').value = city.lat;
+            document.getElementById('heightInput').value = city.height;
+            document.getElementById('headingInput').value = city.heading;
+
+            if (currentMapMode === 'l7') {
+                if (l7Map) {
+                    l7Map.flyTo([city.lon, city.lat], {
+                        zoom: 12,
+                        duration: 1.5
+                    });
+
+                    clearL7CurrentMarker();
+                    const marker = addL7Marker(city.lon, city.lat, 0, true);
+                    if (marker) {
+                        marker.setStyle({
+                            text: city.name
+                        });
+                    }
+                }
+            } else {
+                if (cesiumViewer) {
+                    const destination = Cesium.Cartesian3.fromDegrees(city.lon, city.lat, city.height);
+
+                    cesiumViewer.camera.flyTo({
+                        destination: destination,
+                        orientation: {
+                            heading: Cesium.Math.toRadians(city.heading),
+                            pitch: Cesium.Math.toRadians(-45),
+                            roll: 0.0
+                        },
+                        duration: 2.0,
+                        easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT
+                    });
+
+                    clearCesiumCurrentMarker();
+                    const marker = addCesiumMarker(destination, Cesium.Color.RED, true);
+                    if (marker) {
+                        marker.label.show = true;
+                        marker.label.text = city.name;
+                    }
+                }
+            }
+        }
+
+        function addMarker() {
+            const lon = parseFloat(document.getElementById('lonInput').value);
+            const lat = parseFloat(document.getElementById('latInput').value);
+            const height = parseFloat(document.getElementById('heightInput').value) || 0;
+
+            if (isNaN(lon) || isNaN(lat)) {
+                alert('请输入有效的经纬度');
+                return;
+            }
+
+            if (currentMapMode === 'l7') {
+                addL7Marker(lon, lat, height, false);
+            } else {
+                if (cesiumViewer) {
+                    const position = Cesium.Cartesian3.fromDegrees(lon, lat, height);
+                    addCesiumMarker(position, Cesium.Color.fromCssColorString('rgba(0, 128, 255, 0.8)'), false);
+                }
+            }
+        }
+
+        function addL7Marker(lon, lat, height, isCurrentPosition) {
+            if (!l7Map) return null;
+
+            const markerLayer = new L7.MarkerLayer()
+                .addSource(new L7.GeoJSONSource({
+                    data: {
+                        type: 'Feature',
+                        properties: {
+                            text: isCurrentPosition ? '' : `(${lon.toFixed(4)}, ${lat.toFixed(4)})`
+                        },
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [lon, lat]
+                        }
+                    }
+                }))
+                .setStyle({
+                    markerType: 'circle',
+                    radius: isCurrentPosition ? 12 : 10,
+                    fill: true,
+                    fillColor: isCurrentPosition ? '#ff0000' : '#0080ff',
+                    stroke: true,
+                    strokeColor: '#ffffff',
+                    strokeWidth: 2,
+                    text: {
+                        field: 'text',
+                        fontSize: 12,
+                        fillColor: '#333',
+                        stroke: true,
+                        strokeColor: '#fff',
+                        strokeWidth: 2,
+                        offset: [0, 20]
+                    }
+                });
+
+            l7Map.addLayer(markerLayer);
+
+            if (isCurrentPosition) {
+                currentPositionMarker = markerLayer;
+            } else {
+                l7Markers.push(markerLayer);
+            }
+
+            return markerLayer;
+        }
+
+        function addCesiumMarker(position, color, isCurrentPosition) {
+            if (!cesiumViewer) return null;
+
+            const marker = cesiumViewer.entities.add({
+                position: position,
+                point: {
+                    pixelSize: isCurrentPosition ? 15 : 12,
+                    color: color,
+                    outlineColor: Cesium.Color.WHITE,
+                    outlineWidth: 2,
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY
+                },
+                label: {
+                    show: !isCurrentPosition,
+                    font: '14px Microsoft YaHei',
+                    fillColor: Cesium.Color.WHITE,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    pixelOffset: new Cesium.Cartesian2(0, -20)
+                }
+            });
+
+            if (!isCurrentPosition) {
+                const cartographic = Cesium.Cartographic.fromCartesian(position);
+                marker.label.text = `(${Cesium.Math.toDegrees(cartographic.longitude).toFixed(4)}, ${Cesium.Math.toDegrees(cartographic.latitude).toFixed(4)})`;
+            }
+
+            if (isCurrentPosition) {
+                if (currentPositionMarker) {
+                    cesiumViewer.entities.remove(currentPositionMarker);
+                }
+                currentPositionMarker = marker;
+            } else {
+                cesiumMarkers.push(marker);
+            }
+
+            return marker;
+        }
+
+        function clearMarkers() {
+            if (currentMapMode === 'l7') {
+                l7Markers.forEach(layer => {
+                    l7Map.removeLayer(layer);
+                });
+                l7Markers = [];
+            } else {
+                cesiumMarkers.forEach(marker => {
+                    cesiumViewer.entities.remove(marker);
+                });
+                cesiumMarkers = [];
+            }
+        }
+
+        function clearL7CurrentMarker() {
+            if (currentPositionMarker && l7Map) {
+                l7Map.removeLayer(currentPositionMarker);
+                currentPositionMarker = null;
+            }
+        }
+
+        function clearCesiumCurrentMarker() {
+            if (currentPositionMarker && cesiumViewer) {
+                cesiumViewer.entities.remove(currentPositionMarker);
+                currentPositionMarker = null;
+            }
+        }
+
+        document.getElementById('lonInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') locate();
+        });
+        document.getElementById('latInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') locate();
+        });
+        document.getElementById('heightInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') locate();
+        });
+
+        async function init() {
+            try {
+                await initL7Map();
+                await initCesiumViewer();
+                console.log('地图系统初始化完成');
+            } catch (error) {
+                console.error('地图初始化失败:', error);
+                alert('地图初始化失败，请检查网络连接');
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
