@@ -27,6 +27,10 @@ const loadAMapScript = (): Promise<any> => {
   });
 };
 
+// 高德瓦片图层 URL
+const SATELLITE_TILE_URL = 'https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}';
+const ROAD_TILE_URL = 'https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}';
+
 // 专题章节数据
 interface Waypoint {
   name: string;
@@ -324,20 +328,50 @@ const ThematicShowcase: React.FC = () => {
         const amap = new AMap.Map(mapContainerRef.current, {
           center: CENTER,
           zoom: 10,
-          mapStyle: 'amap://styles/dark',
           viewMode: '2D',
+          mapStyle: 'normal',
         });
 
         amapRef.current = amap;
 
         amap.on('complete', () => {
           if (cancelled) return;
-          // 尝试设置深色风格
+
+          // 移除默认图层，使用自定义瓦片
           try {
-            amap.setMapStyle('amap://styles/dark');
+            amap.removeLayer('default');
           } catch (e) {
-            console.warn('设置深色地图样式失败', e);
+            // 忽略移除失败
           }
+
+          // 添加卫星影像图层
+          const satelliteLayer = new AMap.TileLayer({
+            zIndex: 10,
+            tileSize: 256,
+            getTileUrl: function(x: number, y: number, z: number) {
+              const s = (x + y) % 4 + 1;
+              return SATELLITE_TILE_URL.replace('{s}', String(s))
+                .replace('{x}', String(x))
+                .replace('{y}', String(y))
+                .replace('{z}', String(z));
+            },
+          });
+          amap.add(satelliteLayer);
+
+          // 添加路网注记图层
+          const roadLayer = new AMap.TileLayer({
+            zIndex: 20,
+            tileSize: 256,
+            getTileUrl: function(x: number, y: number, z: number) {
+              const s = (x + y) % 4 + 1;
+              return ROAD_TILE_URL.replace('{s}', String(s))
+                .replace('{x}', String(x))
+                .replace('{y}', String(y))
+                .replace('{z}', String(z));
+            },
+          });
+          amap.add(roadLayer);
+
           setMapReady(true);
           addBaseOverlays(amap, AMap);
           loadChapter(0);
@@ -385,14 +419,13 @@ const ThematicShowcase: React.FC = () => {
 
   return (
     <div style={containerStyle}>
-      {/* 背景地图 - 使用CSS滤镜实现深色效果 */}
+      {/* 背景地图 - 卫星影像 + 路网注记 */}
       <div style={{
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        filter: 'brightness(0.6) saturate(0.9)',
         pointerEvents: 'none',
       }}>
         <div ref={mapContainerRef} style={{ width: '100%', height: '100%', pointerEvents: 'auto' }} />
@@ -589,7 +622,7 @@ const overlayStyle: CSSProperties = {
   right: 0,
   bottom: 0,
   background:
-    'linear-gradient(90deg, rgba(5,15,35,0.95) 0%, rgba(5,15,35,0.85) 30%, rgba(5,15,35,0.6) 60%, rgba(5,15,35,0.4) 100%)',
+    'linear-gradient(90deg, rgba(5,15,35,0.88) 0%, rgba(5,15,35,0.65) 25%, rgba(5,15,35,0.3) 55%, rgba(5,15,35,0.15) 100%)',
   pointerEvents: 'none',
   zIndex: 100,
 };
