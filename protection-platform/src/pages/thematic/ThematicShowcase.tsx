@@ -168,6 +168,7 @@ const ThematicShowcase: React.FC = () => {
   const [currentChapter, setCurrentChapter] = useState(0);
   const [mapReady, setMapReady] = useState(false);
   const [layerMode, setLayerMode] = useState<'satellite' | 'road' | 'hybrid'>('hybrid');
+  const [zoomLevel, setZoomLevel] = useState(10);
   const AMapRef = useRef<any>(null);
 
   // 添加基础覆盖物（边界+功能区）
@@ -383,6 +384,11 @@ const ThematicShowcase: React.FC = () => {
           });
           amap.addControl(scale);
 
+          // 监听缩放事件更新缩放级别
+          amap.on('zoomend', () => {
+            setZoomLevel(Math.round(amap.getZoom()));
+          });
+
           setMapReady(true);
           addBaseOverlays(amap, AMap);
           loadChapter(0);
@@ -433,6 +439,21 @@ const ThematicShowcase: React.FC = () => {
     },
     []
   );
+
+  // 缩放控制
+  const handleZoomIn = useCallback(() => {
+    const amap = amapRef.current;
+    if (amap) {
+      amap.zoomIn();
+    }
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    const amap = amapRef.current;
+    if (amap) {
+      amap.zoomOut();
+    }
+  }, []);
 
   const activeChapter = chapters[currentChapter];
 
@@ -667,6 +688,23 @@ const ThematicShowcase: React.FC = () => {
         </div>
       </div>
 
+      {/* 缩放控件 */}
+      <div style={zoomControlStyle}>
+        <div style={zoomLevelDisplayStyle}>{zoomLevel}</div>
+        <div
+          style={zoomButtonStyle}
+          onMouseDown={(e) => { e.preventDefault(); handleZoomIn(); }}
+        >
+          <span style={zoomIconStyle}>+</span>
+        </div>
+        <div
+          style={{ ...zoomButtonStyle, borderTop: '1px solid rgba(255,255,255,0.15)' }}
+          onMouseDown={(e) => { e.preventDefault(); handleZoomOut(); }}
+        >
+          <span style={zoomIconStyle}>−</span>
+        </div>
+      </div>
+
       {/* 加载提示 */}
       {!mapReady && (
         <div style={loadingStyle}>
@@ -785,6 +823,54 @@ const layerItemStyle: CSSProperties = {
 const layerIconStyle: CSSProperties = { fontSize: 14 };
 const layerLabelStyle: CSSProperties = { fontSize: 13 };
 const layerSubLabelStyle: CSSProperties = { fontSize: 11, opacity: 0.7 };
+
+// 缩放控件样式
+const zoomControlStyle: CSSProperties = {
+  position: 'absolute',
+  bottom: 160,
+  right: 48,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: 10,
+  zIndex: 999,
+};
+
+const zoomLevelDisplayStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 40,
+  height: 40,
+  borderRadius: '50%',
+  background: 'rgba(255,255,255,0.1)',
+  border: '1px solid rgba(255,255,255,0.2)',
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: 600,
+  backdropFilter: 'blur(10px)',
+};
+
+const zoomButtonStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 40,
+  height: 40,
+  borderRadius: '50%',
+  background: 'rgba(255,255,255,0.1)',
+  border: '1px solid rgba(255,255,255,0.2)',
+  color: '#fff',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  backdropFilter: 'blur(10px)',
+};
+
+const zoomIconStyle: CSSProperties = {
+  fontSize: 20,
+  fontWeight: 300,
+  lineHeight: 1,
+};
 
 const loadingStyle: CSSProperties = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a1628', zIndex: 200 };
 const loadingSpinnerStyle: CSSProperties = { width: 40, height: 40, border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#4FC3F7', borderRadius: '50%', animation: 'spin 1s linear infinite' };
