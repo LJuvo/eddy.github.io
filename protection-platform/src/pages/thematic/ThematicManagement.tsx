@@ -600,7 +600,7 @@ const ThematicManagement: React.FC = () => {
         width={900}
         okText="保存"
         cancelText="取消"
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+        styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
       >
         {tempTopic && (
           <>
@@ -780,7 +780,7 @@ const ThematicManagement: React.FC = () => {
         width={700}
         okText="保存章节"
         cancelText="取消"
-        bodyStyle={{ maxHeight: '70vh', overflowY: 'auto' }}
+        styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
       >
         {tempChapter && (
           <>
