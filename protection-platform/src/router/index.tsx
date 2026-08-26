@@ -38,6 +38,7 @@ const PermissionConfig = lazy(() => import('@/pages/system/PermissionConfig'));
 const OrgStructure = lazy(() => import('@/pages/system/OrgStructure'));
 const OperationLogs = lazy(() => import('@/pages/system/OperationLogs'));
 const ThematicShowcase = lazy(() => import('@/pages/thematic/ThematicShowcase'));
+const ThematicManagement = lazy(() => import('@/pages/thematic/ThematicManagement'));
 
 // 路由配置
 export const routes: RouteObject[] = [
@@ -191,6 +192,10 @@ export const routes: RouteObject[] = [
       {
         path: 'thematic/showcase',
         element: <ThematicShowcase />,
+      },
+      {
+        path: 'thematic/management',
+        element: <ThematicManagement />,
       },
     ],
   },

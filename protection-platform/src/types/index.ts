@@ -176,3 +176,50 @@ export interface TableFilters {
 export interface FormValues {
   [key: string]: any;
 }
+
+// 专题展示相关类型
+export interface ThematicWaypoint {
+  name: string;
+  desc: string;
+  lng: number;
+  lat: number;
+}
+
+export interface ThematicChapter {
+  id: number;
+  title: string;
+  subtitle: string;
+  description: string;
+  color: string;
+  route: [number, number][];
+  waypoints: ThematicWaypoint[];
+  icon: string;
+  // 可选的扩展内容
+  speciesIds?: string[];      // 关联物种ID列表
+  stats?: ThematicStat[];      // 统计数据展示
+}
+
+export interface ThematicStat {
+  label: string;
+  value: string;
+  unit: string;
+}
+
+export interface ThematicTopic {
+  id: string;
+  name: string;                // 专题名称
+  code: string;                // 专题编码
+  description: string;          // 专题描述
+  coverColor: string;          // 主题色
+  icon: string;                // 图标 emoji
+  status: 'published' | 'draft' | 'archived';  // 状态
+  chapters: ThematicChapter[]; // 章节列表
+  createdBy: string;           // 创建人
+  createdAt: string;           // 创建时间
+  updatedAt: string;           // 更新时间
+  viewCount: number;           // 浏览次数
+  isDefault?: boolean;         // 是否为默认专题
+}
+
+export type ThematicTopicInput = Omit<ThematicTopic, 'id' | 'createdAt' | 'updatedAt' | 'viewCount'>;
+

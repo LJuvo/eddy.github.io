@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { CSSProperties } from 'react';
-import { reserveInfo, speciesList } from '@/mock';
+import { useSearchParams } from 'react-router-dom';
+import { reserveInfo, speciesList, thematicTopicsData } from '@/mock';
+import type { ThematicTopic } from '@/types';
 
 // 诺水河保护区中心坐标
 const CENTER: [number, number] = [107.15, 32.05];
@@ -159,6 +161,7 @@ const chapters: Chapter[] = [
 ];
 
 const ThematicShowcase: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const amapRef = useRef<any>(null);
   const baseOverlaysRef = useRef<any[]>([]);
@@ -170,6 +173,32 @@ const ThematicShowcase: React.FC = () => {
   const [layerMode, setLayerMode] = useState<'satellite' | 'road' | 'hybrid'>('hybrid');
   const [zoomLevel, setZoomLevel] = useState(10);
   const AMapRef = useRef<any>(null);
+  const [showTopicSelector, setShowTopicSelector] = useState(false);
+
+  // 获取当前专题
+  const currentTopicId = searchParams.get('topic');
+  const publishedTopics = useMemo(
+    () => thematicTopicsData.filter(t => t.status === 'published'),
+    []
+  );
+  
+  const currentTopic = useMemo(() => {
+    if (currentTopicId) {
+      const found = thematicTopicsData.find(t => t.id === currentTopicId);
+      if (found) return found;
+    }
+    // 默认取第一个已发布的专题
+    return publishedTopics.find(t => t.isDefault) || publishedTopics[0] || thematicTopicsData[0];
+  }, [currentTopicId, publishedTopics]);
+
+  const chapters = currentTopic?.chapters || [];
+
+  // 切换专题
+  const handleSwitchTopic = (topicId: string) => {
+    setSearchParams({ topic: topicId });
+    setCurrentChapter(0);
+    setShowTopicSelector(false);
+  };
 
   // 添加基础覆盖物（边界+功能区）
   const addBaseOverlays = useCallback((amap: any, AMap: any) => {
@@ -470,7 +499,15 @@ const ThematicShowcase: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentChapter, handleChapterChange]);
+  }, [currentChapter, handleChapterChange, chapters.length]);
+
+  // 当专题切换时重置状态
+  useEffect(() => {
+    setCurrentChapter(0);
+    if (mapReady && amapRef.current) {
+      loadChapter(0);
+    }
+  }, [currentTopicId]);
 
   return (
     <div style={containerStyle}>
@@ -496,10 +533,114 @@ const ThematicShowcase: React.FC = () => {
           <span style={topBarTitleStyle}>专题地图</span>
         </div>
         <div style={topBarCenterStyle}>
-          <span style={reserveNameStyle}>{reserveInfo.name}</span>
+          <div style={{ position: 'relative' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '6px 16px',
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: 20,
+                cursor: 'pointer',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.15)',
+              }}
+              onClick={() => setShowTopicSelector(!showTopicSelector)}
+            >
+              <span style={{ fontSize: 18 }}>{currentTopic?.icon || '🏞️'}</span>
+              <span style={reserveNameStyle}>
+                {currentTopic?.name || reserveInfo.name}
+              </span>
+              <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>▼</span>
+            </div>
+            {showTopicSelector && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  marginTop: 8,
+                  background: 'rgba(31, 45, 61, 0.98)',
+                  borderRadius: 12,
+                  padding: '8px',
+                  boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                  zIndex: 1000,
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  minWidth: 280,
+                }}
+              >
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', padding: '8px 12px', marginBottom: 4 }}>
+                  选择专题
+                </div>
+                {publishedTopics.map(topic => (
+                  <div
+                    key={topic.id}
+                    onClick={() => handleSwitchTopic(topic.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '12px 16px',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      background: currentTopic?.id === topic.id ? 'rgba(255,255,255,0.1)' : 'transparent',
+                      transition: 'background 0.2s',
+                      marginBottom: 4,
+                    }}
+                    onMouseEnter={e => {
+                      if (currentTopic?.id !== topic.id) {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (currentTopic?.id !== topic.id) {
+                        e.currentTarget.style.background = 'transparent';
+                      }
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 8,
+                        background: `${topic.coverColor}30`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 18,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {topic.icon}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>
+                        {topic.name}
+                        {topic.isDefault && (
+                          <span style={{ color: topic.coverColor, fontSize: 11, marginLeft: 6 }}>默认</span>
+                        )}
+                      </div>
+                      <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>
+                        {topic.description.slice(0, 40)}...
+                      </div>
+                    </div>
+                    <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+                      {topic.chapters.length} 章节
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div style={topBarRightStyle}>
-          <span style={reserveAreaStyle}>总面积 {reserveInfo.area.toLocaleString()} 公顷</span>
+          <span style={reserveAreaStyle}>
+            {currentTopic ? `${currentTopic.chapters.length} 个章节 · ` : ''}
+            总面积 {reserveInfo.area.toLocaleString()} 公顷
+          </span>
         </div>
       </div>
 
@@ -520,43 +661,42 @@ const ThematicShowcase: React.FC = () => {
         <div style={descriptionStyle}>{activeChapter.description}</div>
 
         {/* 物种信息卡片 */}
-        {activeChapter.id === 2 && (
+        {activeChapter.speciesIds && activeChapter.speciesIds.length > 0 && (
           <div style={speciesCardsStyle}>
-            {speciesList.slice(0, 4).map((species) => (
-              <div key={species.id} style={speciesCardStyle}>
-                <div style={{ ...speciesIconStyle, background: activeChapter.color }}>
-                  {species.name.charAt(0)}
+            {activeChapter.speciesIds.map(speciesId => {
+              const species = speciesList.find(s => s.id === speciesId);
+              if (!species) return null;
+              return (
+                <div key={species.id} style={speciesCardStyle}>
+                  <div style={{ ...speciesIconStyle, background: activeChapter.color }}>
+                    {species.name.charAt(0)}
+                  </div>
+                  <div style={speciesInfoStyle}>
+                    <div style={speciesNameStyle}>{species.name}</div>
+                    <div style={speciesLatinStyle}>{species.latinName}</div>
+                    <div style={speciesCategoryStyle}>{species.category}</div>
+                  </div>
+                  <div
+                    style={{
+                      ...protectionBadgeStyle,
+                      background:
+                        species.protectionLevel === '1'
+                          ? 'rgba(255, 77, 79, 0.9)'
+                          : 'rgba(250, 173, 20, 0.9)',
+                    }}
+                  >
+                    {species.protectionLevel === '1' ? '国家一级' : '国家二级'}
+                  </div>
                 </div>
-                <div style={speciesInfoStyle}>
-                  <div style={speciesNameStyle}>{species.name}</div>
-                  <div style={speciesLatinStyle}>{species.latinName}</div>
-                  <div style={speciesCategoryStyle}>{species.category}</div>
-                </div>
-                <div
-                  style={{
-                    ...protectionBadgeStyle,
-                    background:
-                      species.protectionLevel === '1'
-                        ? 'rgba(255, 77, 79, 0.9)'
-                        : 'rgba(250, 173, 20, 0.9)',
-                  }}
-                >
-                  {species.protectionLevel === '1' ? '国家一级' : '国家二级'}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
         {/* 统计数据 */}
-        {activeChapter.id === 3 && (
+        {activeChapter.stats && activeChapter.stats.length > 0 && (
           <div style={statsContainerStyle}>
-            {[
-              { label: '累计巡护里程', value: '12,500', unit: 'km' },
-              { label: '巡护站点', value: '8', unit: '个' },
-              { label: '监测设备', value: '35', unit: '台' },
-              { label: '查处案件', value: '35', unit: '起' },
-            ].map((stat, idx) => (
+            {activeChapter.stats.map((stat, idx) => (
               <div key={idx} style={statItemStyle}>
                 <div style={{ ...statValueStyle, color: activeChapter.color }}>
                   {stat.value}

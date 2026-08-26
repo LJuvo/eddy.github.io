@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
+import {
   HomeOutlined,
   EnvironmentOutlined,
   ExperimentOutlined,
@@ -27,6 +27,7 @@ import {
   FileDoneOutlined,
   RobotOutlined,
   CompassOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Menu } from 'antd';
@@ -225,6 +226,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onCollapse }) => {
           key: '/thematic/showcase',
           label: '自然保护区专题',
           icon: <GlobalOutlined />,
+        },
+        {
+          key: '/thematic/management',
+          label: '专题管理',
+          icon: <EditOutlined />,
         },
       ],
     },
