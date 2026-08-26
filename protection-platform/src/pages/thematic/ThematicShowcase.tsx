@@ -163,8 +163,11 @@ const ThematicShowcase: React.FC = () => {
   const amapRef = useRef<any>(null);
   const baseOverlaysRef = useRef<any[]>([]);
   const chapterOverlaysRef = useRef<any[]>([]);
+  const satelliteLayerRef = useRef<any>(null);
+  const roadLayerRef = useRef<any>(null);
   const [currentChapter, setCurrentChapter] = useState(0);
   const [mapReady, setMapReady] = useState(false);
+  const [layerMode, setLayerMode] = useState<'satellite' | 'road' | 'hybrid'>('hybrid');
   const AMapRef = useRef<any>(null);
 
   // 添加基础覆盖物（边界+功能区）
@@ -357,6 +360,7 @@ const ThematicShowcase: React.FC = () => {
             },
           });
           amap.add(satelliteLayer);
+          satelliteLayerRef.current = satelliteLayer;
 
           // 添加路网注记图层
           const roadLayer = new AMap.TileLayer({
@@ -371,6 +375,13 @@ const ThematicShowcase: React.FC = () => {
             },
           });
           amap.add(roadLayer);
+          roadLayerRef.current = roadLayer;
+
+          // 添加比例尺控件
+          const scale = new AMap.Scale({
+            position: 'LB',
+          });
+          amap.addControl(scale);
 
           setMapReady(true);
           addBaseOverlays(amap, AMap);
@@ -398,6 +409,29 @@ const ThematicShowcase: React.FC = () => {
       loadChapter(index);
     },
     [currentChapter, loadChapter]
+  );
+
+  // 切换图层模式
+  const handleLayerModeChange = useCallback(
+    (mode: 'satellite' | 'road' | 'hybrid') => {
+      setLayerMode(mode);
+      const satelliteLayer = satelliteLayerRef.current;
+      const roadLayer = roadLayerRef.current;
+      if (!satelliteLayer || !roadLayer) return;
+
+      if (mode === 'satellite') {
+        satelliteLayer.show();
+        roadLayer.hide();
+      } else if (mode === 'road') {
+        satelliteLayer.hide();
+        roadLayer.show();
+      } else {
+        // hybrid
+        satelliteLayer.show();
+        roadLayer.show();
+      }
+    },
+    []
   );
 
   const activeChapter = chapters[currentChapter];
@@ -595,6 +629,44 @@ const ThematicShowcase: React.FC = () => {
         </span>
       </div>
 
+      {/* 右下角图层切换工具 */}
+      <div style={layerSwitcherStyle}>
+        <div
+          style={{
+            ...layerItemStyle,
+            background: layerMode === 'hybrid' ? 'rgba(79, 195, 247, 0.9)' : 'rgba(255,255,255,0.1)',
+            color: layerMode === 'hybrid' ? '#fff' : 'rgba(255,255,255,0.7)',
+          }}
+          onMouseDown={(e) => { e.preventDefault(); handleLayerModeChange('hybrid'); }}
+        >
+          <span style={layerIconStyle}>🛰️</span>
+          <span style={layerLabelStyle}>影像</span>
+          <span style={layerSubLabelStyle}>+路网</span>
+        </div>
+        <div
+          style={{
+            ...layerItemStyle,
+            background: layerMode === 'satellite' ? 'rgba(79, 195, 247, 0.9)' : 'rgba(255,255,255,0.1)',
+            color: layerMode === 'satellite' ? '#fff' : 'rgba(255,255,255,0.7)',
+          }}
+          onMouseDown={(e) => { e.preventDefault(); handleLayerModeChange('satellite'); }}
+        >
+          <span style={layerIconStyle}>🛰️</span>
+          <span style={layerLabelStyle}>卫星</span>
+        </div>
+        <div
+          style={{
+            ...layerItemStyle,
+            background: layerMode === 'road' ? 'rgba(79, 195, 247, 0.9)' : 'rgba(255,255,255,0.1)',
+            color: layerMode === 'road' ? '#fff' : 'rgba(255,255,255,0.7)',
+          }}
+          onMouseDown={(e) => { e.preventDefault(); handleLayerModeChange('road'); }}
+        >
+          <span style={layerIconStyle}>🗺️</span>
+          <span style={layerLabelStyle}>路网</span>
+        </div>
+      </div>
+
       {/* 加载提示 */}
       {!mapReady && (
         <div style={loadingStyle}>
@@ -683,6 +755,36 @@ const bottomIndicatorStyle: CSSProperties = { position: 'absolute', bottom: 40, 
 const indicatorItemStyle: CSSProperties = { width: 40, height: 3, borderRadius: 2, cursor: 'pointer', transition: 'all 0.3s ease' };
 
 const chapterCounterStyle: CSSProperties = { position: 'absolute', bottom: 60, left: 48, display: 'flex', alignItems: 'baseline', zIndex: 999, fontFamily: 'Georgia, serif' };
+
+// 图层切换工具样式
+const layerSwitcherStyle: CSSProperties = {
+  position: 'absolute',
+  bottom: 60,
+  right: 48,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+  zIndex: 999,
+};
+
+const layerItemStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  padding: '8px 14px',
+  borderRadius: 20,
+  cursor: 'pointer',
+  fontSize: 13,
+  fontWeight: 500,
+  transition: 'all 0.3s ease',
+  border: '1px solid rgba(255,255,255,0.15)',
+  backdropFilter: 'blur(10px)',
+  minWidth: 90,
+};
+
+const layerIconStyle: CSSProperties = { fontSize: 14 };
+const layerLabelStyle: CSSProperties = { fontSize: 13 };
+const layerSubLabelStyle: CSSProperties = { fontSize: 11, opacity: 0.7 };
 
 const loadingStyle: CSSProperties = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a1628', zIndex: 200 };
 const loadingSpinnerStyle: CSSProperties = { width: 40, height: 40, border: '3px solid rgba(255,255,255,0.1)', borderTopColor: '#4FC3F7', borderRadius: '50%', animation: 'spin 1s linear infinite' };
