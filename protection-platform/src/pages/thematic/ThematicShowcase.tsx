@@ -267,37 +267,44 @@ const ThematicShowcase: React.FC = () => {
     chapterOverlaysRef.current.forEach((o) => amap.remove(o));
     chapterOverlaysRef.current = [];
 
-    // 添加路线（带发光效果）
-    const routePath = chapter.route.map((c: [number, number]) => new AMap.LngLat(c[0], c[1]));
+    // 检查是否有有效的路线数据
+    const hasRoute = chapter.route && chapter.route.length >= 2;
 
-    // 外层发光路线
-    const glowPolyline = new AMap.Polyline({
-      path: routePath,
-      strokeColor: chapter.color,
-      strokeWeight: 16,
-      strokeOpacity: 0.2,
-      strokeLinecap: 'round',
-      showDir: false,
-      zIndex: 60,
-    });
-    amap.add(glowPolyline);
-    chapterOverlaysRef.current.push(glowPolyline);
+    if (hasRoute) {
+      // 添加路线（带发光效果）
+      const routePath = chapter.route.map((c: [number, number]) => new AMap.LngLat(c[0], c[1]));
 
-    // 主路线
-    const mainPolyline = new AMap.Polyline({
-      path: routePath,
-      strokeColor: chapter.color,
-      strokeWeight: 4,
-      strokeOpacity: 0.95,
-      strokeLinecap: 'round',
-      showDir: false,
-      zIndex: 61,
-    });
-    amap.add(mainPolyline);
-    chapterOverlaysRef.current.push(mainPolyline);
+      // 外层发光路线
+      const glowPolyline = new AMap.Polyline({
+        path: routePath,
+        strokeColor: chapter.color,
+        strokeWeight: 16,
+        strokeOpacity: 0.2,
+        strokeLinecap: 'round',
+        showDir: false,
+        zIndex: 60,
+      });
+      amap.add(glowPolyline);
+      chapterOverlaysRef.current.push(glowPolyline);
+
+      // 主路线
+      const mainPolyline = new AMap.Polyline({
+        path: routePath,
+        strokeColor: chapter.color,
+        strokeWeight: 4,
+        strokeOpacity: 0.95,
+        strokeLinecap: 'round',
+        showDir: false,
+        zIndex: 61,
+      });
+      amap.add(mainPolyline);
+      chapterOverlaysRef.current.push(mainPolyline);
+    }
 
     // 航点
-    chapter.waypoints.forEach((wp, idx) => {
+    chapter.waypoints
+      .filter((wp) => typeof wp.lng === 'number' && typeof wp.lat === 'number' && !isNaN(wp.lng) && !isNaN(wp.lat))
+      .forEach((wp, idx) => {
       // 外圈光晕
       const glowMarker = new AMap.CircleMarker({
         center: [wp.lng, wp.lat],
@@ -337,14 +344,16 @@ const ThematicShowcase: React.FC = () => {
       chapterOverlaysRef.current.push(label);
     });
 
-    // 缩放到路线范围
-    const lngs = chapter.route.map((r) => r[0]);
-    const lats = chapter.route.map((r) => r[1]);
-    const bounds = new AMap.Bounds(
-      [Math.min(...lngs), Math.min(...lats)],
-      [Math.max(...lngs), Math.max(...lats)]
-    );
-    amap.setBounds(bounds, false, [80, 80, 80, 80]);
+    // 缩放到路线范围（仅当有有效路线时）
+    if (hasRoute) {
+      const lngs = chapter.route.map((r) => r[0]);
+      const lats = chapter.route.map((r) => r[1]);
+      const bounds = new AMap.Bounds(
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)]
+      );
+      amap.setBounds(bounds, false, [80, 80, 80, 80]);
+    }
   }, []);
 
   // 初始化地图
