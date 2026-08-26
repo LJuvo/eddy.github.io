@@ -827,7 +827,7 @@ const layerSubLabelStyle: CSSProperties = { fontSize: 11, opacity: 0.7 };
 // 缩放控件样式
 const zoomControlStyle: CSSProperties = {
   position: 'absolute',
-  bottom: 160,
+  bottom: 280,
   right: 48,
   display: 'flex',
   flexDirection: 'column',
